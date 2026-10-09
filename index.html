@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>陪玩俱乐部报备系统</title>
+<style>
+:root{--accent:#7c5cff;--accent2:#6b47f5;--accent-text:#a98dff;--accent-glow:rgba(124,92,255,.12);--accent-soft:rgba(124,92,255,.15);--accent-border:rgba(124,92,255,.25);--bg-body:#0f1117;--bg-glow:#241f4d;--card-bg:#181b25;--input-bg:#11141c;--border:#272c3a;--border-soft:#1f2431;--chip-bg:#232838;--topbar-bg:rgba(15,17,23,.93);--tabbar-bg:rgba(20,23,32,.96);--text:#e8eaf0;--mut:#8b90a0}
+html[data-theme="red"]{--accent:#e8394f;--accent2:#c92a40;--accent-text:#ff8a95;--accent-glow:rgba(232,57,79,.12);--accent-soft:rgba(232,57,79,.15);--accent-border:rgba(232,57,79,.28);--bg-body:#120d0e;--bg-glow:#3d141c;--card-bg:#1c1416;--input-bg:#140e10;--border:#332026;--border-soft:#261a1d;--chip-bg:#2a1e21;--topbar-bg:rgba(18,13,14,.93);--tabbar-bg:rgba(24,17,19,.96)}
+html[data-theme="orange"]{--accent:#ff8a2b;--accent2:#f0731a;--accent-text:#ffb070;--accent-glow:rgba(255,138,43,.12);--accent-soft:rgba(255,138,43,.15);--accent-border:rgba(255,138,43,.28);--bg-body:#120e09;--bg-glow:#3d2408;--card-bg:#1d1710;--input-bg:#15100a;--border:#332618;--border-soft:#261d13;--chip-bg:#2a2016;--topbar-bg:rgba(18,14,9,.93);--tabbar-bg:rgba(24,19,12,.96)}
+html[data-theme="green"]{--accent:#22c96b;--accent2:#16a957;--accent-text:#6ee7a0;--accent-glow:rgba(34,201,107,.12);--accent-soft:rgba(34,201,107,.15);--accent-border:rgba(34,201,107,.28);--bg-body:#0b120e;--bg-glow:#0f3d26;--card-bg:#111d17;--input-bg:#0c1511;--border:#1a3328;--border-soft:#14261e;--chip-bg:#182b21;--topbar-bg:rgba(11,18,14,.93);--tabbar-bg:rgba(15,24,19,.96)}
+html[data-theme="cyan"]{--accent:#1ec8e0;--accent2:#12aec6;--accent-text:#67e8f9;--accent-glow:rgba(30,200,224,.12);--accent-soft:rgba(30,200,224,.15);--accent-border:rgba(30,200,224,.28);--bg-body:#0a1216;--bg-glow:#0e3540;--card-bg:#101c22;--input-bg:#0b151a;--border:#1a3038;--border-soft:#14252c;--chip-bg:#182a31;--topbar-bg:rgba(10,18,22,.93);--tabbar-bg:rgba(14,24,29,.96)}
+html[data-theme="blue"]{--accent:#3b82f6;--accent2:#2563eb;--accent-text:#7cb8ff;--accent-glow:rgba(59,130,246,.12);--accent-soft:rgba(59,130,246,.15);--accent-border:rgba(59,130,246,.28);--bg-body:#0a1018;--bg-glow:#0f264d;--card-bg:#111826;--input-bg:#0c131c;--border:#1a2940;--border-soft:#14202f;--chip-bg:#182436;--topbar-bg:rgba(10,16,24,.93);--tabbar-bg:rgba(14,20,28,.96)}
+html[data-theme="purple"]{--accent:#a855f7;--accent2:#9333ea;--accent-text:#c084fc;--accent-glow:rgba(168,85,247,.12);--accent-soft:rgba(168,85,247,.15);--accent-border:rgba(168,85,247,.28);--bg-body:#100b16;--bg-glow:#2d1145;--card-bg:#171020;--input-bg:#110c18;--border:#2a1b3a;--border-soft:#20152c;--chip-bg:#251833;--topbar-bg:rgba(16,11,22,.93);--tabbar-bg:rgba(20,14,28,.96)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg-body);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;transition:background .3s}
+.hidden{display:none!important}
+input,select,button,textarea{font-family:inherit;font-size:14px}
+input[type=text],input[type=password],input[type=number],input[type=date],input[type=month],select{width:100%;padding:11px 13px;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;color:var(--text);outline:none;transition:.15s;-webkit-appearance:none;appearance:none}
+input::placeholder{color:#565c6e}
+input:focus,select:focus{border-color:var(--accent);background:var(--card-bg);box-shadow:0 0 0 3px var(--accent-glow)}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input:disabled{opacity:.5}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:var(--chip-bg);color:var(--text);cursor:pointer;transition:.15s;font-weight:500;white-space:nowrap}
+.btn:hover{filter:brightness(1.18)}.btn:active{transform:scale(.98)}
+.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;box-shadow:0 6px 20px -8px var(--accent)}
+.btn.block{width:100%;padding:13px}.btn.sm{padding:7px 12px;font-size:13px;border-radius:8px}.btn.ghost{background:transparent}
+.btn.danger{background:#3a1a1e;border-color:#5b2429;color:#ff8189}.btn.danger:hover{background:#4a1f24;filter:none}
+.btn.warn{background:#3a2a12;border-color:#5b421f;color:#fbbf24}.btn.warn:hover{background:#4a3517;filter:none}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;transition:.3s}
+.card-title{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:600;margin-bottom:14px;font-size:15px}
+.field{margin-bottom:14px}.field label{display:block;font-size:12.5px;color:var(--mut);margin-bottom:7px;font-weight:500}
+.hint{font-size:12px;color:var(--mut);opacity:.85;margin-top:6px;line-height:1.5}
+.seg{display:flex;background:var(--input-bg);border:1px solid var(--border);border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;padding:9px 6px;border:0;background:transparent;color:var(--mut);border-radius:9px;cursor:pointer;font-weight:500;transition:.15s;font-size:13px}
+.seg button.active{background:var(--accent);color:#fff;box-shadow:0 4px 14px -6px var(--accent)}
+.badge{font-size:11.5px;padding:3px 9px;border-radius:20px;background:var(--accent-soft);color:var(--accent-text);font-weight:600;border:1px solid var(--accent-border)}
+.badge.gray{background:var(--chip-bg);color:var(--mut);border-color:var(--border)}
+.badge.gold{background:rgba(251,191,36,.15);color:#fbbf24;border-color:rgba(251,191,36,.3)}
+.mut{color:var(--mut)}.small{font-size:12px}.ok{color:#22c55e}.warn{color:#ef4444}.gold{color:#fbbf24}.pri{color:var(--accent-text)}
+.empty{text-align:center;color:var(--mut);opacity:.7;padding:28px 0;font-size:13px}
+#authView{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:radial-gradient(ellipse at 50% -10%,var(--bg-glow) 0%,var(--bg-body) 55%);transition:.3s}
+.auth-box{width:100%;max-width:400px}
+.brand{text-align:center;margin-bottom:26px}
+.brand-logo{font-size:52px;line-height:1;margin-bottom:10px;filter:drop-shadow(0 6px 20px var(--accent-border))}
+.brand h1{margin:0 0 6px;font-size:24px;letter-spacing:-.5px}.brand p{margin:0;color:var(--mut);font-size:13px}
+#appView{min-height:100vh;padding-bottom:88px}
+#topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 16px;background:var(--topbar-bg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border);transition:.3s}
+.tb-club{font-weight:700;font-size:15.5px;letter-spacing:-.2px}.tb-sub{font-size:11.5px;color:var(--mut);margin-top:1px}
+#content{padding:16px 16px 20px;max-width:780px;margin:0 auto}
+#tabbar{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--tabbar-bg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--border);padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:50;transition:.3s}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;color:var(--mut);padding:6px 2px;border-radius:10px;cursor:pointer;font-size:10.5px;transition:.15s;min-width:0}
+.tab.active{color:var(--accent-text)}.tab-ico{font-size:18px;line-height:1}.tab.active .tab-ico{transform:scale(1.08)}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:15px}
+.type-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:14px 4px;border-radius:12px;background:var(--card-bg);border:1px solid var(--border);color:var(--mut);cursor:pointer;transition:.15s;font-size:12.5px}
+.type-btn .ti{font-size:22px;line-height:1}
+.type-btn.active{background:var(--c);color:#fff;border-color:transparent;box-shadow:0 6px 20px -8px var(--c)}
+.fold{border:1px solid var(--border);border-radius:11px;margin-bottom:12px;overflow:hidden;background:var(--input-bg)}
+.fold summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;font-weight:500;color:var(--text);opacity:.9;user-select:none}
+.fold summary::-webkit-details-marker{display:none}.fold summary::after{content:'▾';color:var(--mut);transition:.2s;font-size:12px}
+.fold[open] summary::after{transform:rotate(180deg)}.fold-body{padding:0 14px 14px;border-top:1px solid var(--border-soft);padding-top:14px}
+.tip-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.tip-btn{padding:9px 2px;border-radius:9px;background:var(--chip-bg);border:1px solid var(--border);color:var(--mut);cursor:pointer;transition:.15s;font-size:13px;font-weight:600}
+.tip-btn.active{background:#fbbf24;border-color:#fbbf24;color:#3a2a00}
+.disc-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.disc-btn{padding:9px 2px;border-radius:9px;background:var(--chip-bg);border:1px solid var(--border);color:var(--mut);cursor:pointer;transition:.15s;font-size:13px}
+.disc-btn.active{background:#38bdf8;border-color:#38bdf8;color:#04202e;font-weight:700}
+.preview{background:var(--input-bg);border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin-bottom:14px}
+.prow{display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px}.prow span:first-child{color:var(--mut)}.prow span:last-child{font-weight:600;font-variant-numeric:tabular-nums}
+.preview .prow:last-child{border-top:1px dashed var(--border);margin-top:6px;padding-top:9px}
+.mini-list{display:flex;flex-direction:column;gap:2px}
+.mini-item{display:flex;align-items:center;gap:9px;padding:9px 2px;border-bottom:1px solid var(--border-soft);font-size:13px}
+.mini-item:last-child{border-bottom:0}.dot{width:7px;height:7px;border-radius:50%;flex:none}
+.mi-name{color:var(--text);opacity:.9;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mi-amt{color:var(--mut);font-variant-numeric:tabular-nums;font-size:12.5px}.mi-net{font-weight:600;font-variant-numeric:tabular-nums;min-width:74px;text-align:right}
+.img-preview{position:relative;display:inline-block;margin-top:10px}
+.img-preview img{max-width:160px;max-height:160px;border-radius:10px;border:1px solid var(--border);display:block}
+.img-preview .rm{position:absolute;top:-8px;right:-8px;width:26px;height:26px;border-radius:50%;background:#ef4444;color:#fff;border:2px solid var(--card-bg);cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;font-weight:700}
+.filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filters select,.filters input{flex:1;min-width:110px;padding:9px 11px;font-size:13px}
+.order{background:var(--card-bg);border:1px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:10px;transition:.3s}
+.order.fine{border-color:#4a1f24;background:linear-gradient(180deg,#1e1215,var(--card-bg))}
+.order.settled{border-left:3px solid #fbbf24}
+.o-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.o-type{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:7px}.o-time{font-size:11.5px;color:var(--mut);opacity:.85}
+.o-amt{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.o-meta{font-size:12px;color:var(--mut);margin-top:4px;font-variant-numeric:tabular-nums}.o-meta b{color:var(--accent-text);font-weight:600}
+.o-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border-soft);font-size:12px;color:var(--mut)}
+.o-note{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.chip{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;background:var(--chip-bg);color:var(--mut);margin-right:6px}
+.o-thumb{max-width:110px;max-height:110px;border-radius:9px;border:1px solid var(--border);cursor:zoom-in;margin-top:9px;display:block}
+.dispatch{background:var(--card-bg);border:1px solid var(--border);border-radius:13px;padding:14px;margin-bottom:10px;transition:.3s}
+.dispatch.open{border-color:#4a3a1f;background:linear-gradient(180deg,#1e1a12,var(--card-bg))}
+.d-title{font-size:15px;font-weight:600;margin:0 0 6px}
+.d-desc{font-size:12.5px;color:var(--mut);margin-bottom:10px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.d-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+.d-amount{font-size:20px;font-weight:700;color:#ff8a3d;font-variant-numeric:tabular-nums}
+.fine-hero{background:linear-gradient(135deg,#3a1a1e,#2a1417);border:1px solid #5b2429;border-radius:14px;padding:16px;margin-bottom:14px}
+.fine-hero .k{font-size:12px;color:#ff9aa1;margin-bottom:4px}
+.fine-hero .v{font-size:26px;font-weight:800;color:#ff8189;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.fine-user{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--border-soft);font-size:13px}
+.fine-user:last-child{border-bottom:0}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:14px;transition:.3s}
+.stat .k{font-size:12px;color:var(--mut);margin-bottom:6px}.stat .v{font-size:19px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--mut);font-weight:500;font-size:12px;padding:8px 6px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 6px;border-bottom:1px solid var(--border-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}td.num,th.num{text-align:right}tbody tr:hover{background:var(--chip-bg)}
+.member{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--border-soft);font-size:13px}
+.member:last-child{border-bottom:0}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#38bdf8);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex:none}
+.code-box{display:flex;align-items:center;gap:10px;background:var(--input-bg);border:1px dashed var(--accent-border);border-radius:11px;padding:12px 14px;margin-top:6px}
+.code-val{font-size:22px;font-weight:800;letter-spacing:4px;color:var(--accent-text);flex:1;font-family:ui-monospace,Menlo,monospace}
+.row-flex{display:flex;gap:8px;align-items:center}.row-flex input{flex:1}
+.podium{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;align-items:end}
+.podium-item{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;transition:.3s}
+.podium-item.p1{border-color:rgba(251,191,36,.5);box-shadow:0 8px 30px -14px rgba(251,191,36,.6);padding:22px 8px 16px}
+.podium-item.p2{border-color:rgba(203,213,225,.35)}.podium-item.p3{border-color:rgba(205,127,50,.4)}
+.podium-rank{font-size:22px;line-height:1;margin-bottom:8px}
+.podium-avatar{width:46px;height:46px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:17px}
+.podium-item.p1 .podium-avatar{width:56px;height:56px;font-size:20px}
+.podium-name{font-size:12.5px;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+.podium-amt{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent-text)}
+.podium-item.p1 .podium-amt{font-size:16px}.podium-sub{font-size:11px;color:var(--mut);margin-top:3px}
+.rank-row{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--border-soft)}
+.rank-row:last-child{border-bottom:0}
+.rank-row.me{background:var(--accent-soft);border-radius:10px;padding:10px 8px;margin:0 -8px;border-bottom:0}
+.rank-no{width:30px;text-align:center;font-size:13px;font-weight:700;color:var(--mut);font-variant-numeric:tabular-nums;flex:none}
+.rank-row.me .rank-no{color:var(--accent-text)}
+.rank-name{flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-right{text-align:right;flex:none}.rank-amt{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent-text)}
+.rank-sub{font-size:11px;color:var(--mut);margin-top:1px}
+.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.theme-swatch{display:flex;flex-direction:column;align-items:center;gap:7px;padding:11px 4px;border-radius:12px;background:var(--input-bg);border:1.5px solid var(--border);cursor:pointer;transition:.15s}
+.theme-swatch:hover{filter:brightness(1.15)}.theme-swatch.active{border-color:var(--accent);background:var(--accent-soft)}
+.theme-dot{width:26px;height:26px;border-radius:50%;box-shadow:0 2px 10px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.12)}
+.theme-name{font-size:11px;color:var(--mut)}.theme-swatch.active .theme-name{color:var(--accent-text);font-weight:600}
+.check-line{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text);cursor:pointer;padding:12px 14px;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;line-height:1.5}
+.check-line input{width:auto;flex:none;margin-top:3px;accent-color:var(--accent);cursor:pointer}
+.check-line input:focus{box-shadow:none}
+.day-card{background:var(--input-bg);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;background:var(--chip-bg);font-size:13px;font-weight:600}
+.day-body{padding:6px 14px 10px}
+.day-type-row{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:12.5px;border-bottom:1px dashed var(--border-soft)}
+.day-type-row:last-child{border-bottom:0}.dtr-name{flex:1}.dtr-count{color:var(--mut);font-variant-numeric:tabular-nums;font-size:12px}
+.dtr-net{font-weight:700;font-variant-numeric:tabular-nums;min-width:76px;text-align:right}
+#superBtn{position:fixed;bottom:24px;right:20px;width:46px;height:46px;border-radius:50%;background:var(--chip-bg);border:1px solid var(--border);color:var(--mut);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:80;opacity:.35;transition:.2s;box-shadow:0 4px 20px -6px rgba(0,0,0,.7)}
+#superBtn:hover{opacity:1;color:var(--accent-text);border-color:var(--accent-border)}
+#toast{position:fixed;left:50%;bottom:110px;transform:translate(-50%,20px);background:var(--chip-bg);color:var(--text);padding:11px 20px;border-radius:12px;font-size:13.5px;z-index:999;opacity:0;pointer-events:none;transition:.25s;border:1px solid var(--border);max-width:86vw;text-align:center;box-shadow:0 10px 30px -10px rgba(0,0,0,.7)}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#imgModal{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
+#imgModal img{max-width:100%;max-height:100%;border-radius:12px;object-fit:contain}
+.loading{text-align:center;color:var(--mut);padding:60px 20px;font-size:14px}
+.spinner{display:inline-block;width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="authView"></div>
+<div id="superView" class="hidden"></div>
+
+<div id="appView" class="hidden">
+  <header id="topbar"></header>
+  <main id="content"></main>
+  <nav id="tabbar"></nav>
+</div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+/* ============================================================
+   ⚙️ 配置区
+   ============================================================ */
+const SUPABASE_URL = 'https://thoaduhgtghskretxfut.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_rM9DsjFSuDd7PmnD4LP9rQ_CdvbkrD5';
+/* ============================================================ */
+
+const SUPER_ADMIN_PASSWORD = '846467554jxjsjsisjidbdgujwqkjsuxhv；@';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const ORDER_TYPES = {
+  peiwan:  { name:'陪玩单', icon:'🎮', color:'#7c5cff' },
+  paidan:  { name:'派单',   icon:'📢', color:'#ff8a3d' },
+  gift:    { name:'礼物单', icon:'🎁', color:'#ff5c8a' },
+  custom:  { name:'自定义', icon:'✏️', color:'#22c55e' },
+  fine:    { name:'罚款单', icon:'⚠️', color:'#ef4444' }
+};
+const REPORT_TYPES = ['peiwan','gift','custom'];
+const ALL_TYPES = ['peiwan','paidan','gift','custom','fine'];
+const DEFAULT_COMMISSION = { peiwan:30, paidan:30, gift:30, custom:30, fine:0 };
+const TAB_ICONS = { report:'✍️', orders:'📋', dispatch:'📢', fine:'⚠️', flow:'📊', rank:'🏆', settings:'⚙️' };
+const THEMES = [
+  { id:'black',  name:'墨黑', accent:'#7c5cff' },
+  { id:'red',    name:'赤',   accent:'#e8394f' },
+  { id:'orange', name:'橙',   accent:'#ff8a2b' },
+  { id:'green',  name:'绿',   accent:'#22c96b' },
+  { id:'cyan',   name:'青',   accent:'#1ec8e0' },
+  { id:'blue',   name:'蓝',   accent:'#3b82f6' },
+  { id:'purple', name:'紫',   accent:'#a855f7' }
+];
+
+let DB = { users:[], clubs:[], orders:[], dispatches:[] };
+let ME = null;
+let AUTH = { mode:'login', role:'player' };
+let SUPER_MODE = false;
+let AUTH_CODES = [];
+let SUPER_CLUBS = [];
+let UI = {
+  tab:'report', reportType:'peiwan', reportTip:0, reportDiscount:10, reportImage:null, reportSettled:false, fineImage:null,
+  flowSub:'flow', flowPeriod:'day', flowDate: todayStr(), flowUser:'all',
+  rankPeriod:'week',
+  oType:'all', oUser:'all', oDate:'',
+  salaryMonth: monthStr()
+};
+let channels = [];
+
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+function uid(){ return crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2,10)); }
+function pad2(n){ return String(n).padStart(2,'0'); }
+function todayStr(d){ d = d || new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function monthStr(d){ d = d || new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1); }
+function round2(n){ return Math.round((Number(n)||0)*100)/100; }
+function money(n){ const v = round2(n||0); return (v<0?'-¥':'¥') + Math.abs(v).toFixed(2); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function fmtTime(ts){ const d = new Date(Number(ts)); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+function fmtDate(ts){ const d = new Date(Number(ts)); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function weekStart(d){ const x = new Date(d); x.setHours(0,0,0,0); const day = (x.getDay()+6)%7; x.setDate(x.getDate()-day); return x; }
+function isManagerRole(r){ return r === 'admin' || r === 'staff'; }
+function roleBadge(r){ return r === 'admin' ? '👑 管理员' : r === 'staff' ? '💼 员工' : '🎮 陪玩'; }
+function roleLabel(r){ return r === 'admin' ? '管理员' : r === 'staff' ? '员工' : '陪玩'; }
+
+let toastTimer;
+function toast(msg){
+  let el = $('#toast');
+  if(!el){ el = document.createElement('div'); el.id='toast'; document.body.appendChild(el); }
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t || 'black');
+  const meta = document.querySelector('meta[name=theme-color]');
+  if(meta){
+    const map = { black:'#0f1117', red:'#120d0e', orange:'#120e09', green:'#0b120e', cyan:'#0a1216', blue:'#0a1018', purple:'#100b16' };
+    meta.setAttribute('content', map[t||'black'] || '#0f1117');
+  }
+}
+
+function viewImage(src){
+  let m = document.getElementById('imgModal');
+  if(!m){
+    m = document.createElement('div');
+    m.id = 'imgModal';
+    m.onclick = () => { m.style.display = 'none'; };
+    m.innerHTML = '<img alt="图片">';
+    document.body.appendChild(m);
+  }
+  m.querySelector('img').src = src;
+  m.style.display = 'flex';
+}
+
+function compressImage(file, maxW, quality){
+  maxW = maxW || 720; quality = quality || 0.62;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if(w > maxW){ h = Math.round(h * maxW / w); w = maxW; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('图片读取失败'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('文件读取失败'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function getRate(type){
+  if(type === 'fine') return 0;
+  if(!ME) return DEFAULT_COMMISSION[type] ?? 30;
+  const club = DB.clubs.find(c => c.id === ME.club_id);
+  if(!club) return DEFAULT_COMMISSION[type] ?? 30;
+  const c = club.commission || {};
+  const v = c[type];
+  return (v==null || isNaN(v)) ? (DEFAULT_COMMISSION[type] ?? 30) : Number(v);
+}
+
+function calcOrder(type, amount, tip, disc, rate){
+  amount = Number(amount)||0; tip = Number(tip)||0; disc = Number(disc)||10; rate = Number(rate)||0;
+  if(type === 'fine') return { gross: round2(amount), commission:0, net: round2(-amount) };
+  let gross = (type === 'peiwan') ? (amount + tip) * (disc/10) : amount;
+  gross = round2(gross);
+  const commission = round2(gross * rate / 100);
+  return { gross, commission, net: round2(gross - commission) };
+}
+
+function calcStats(list){
+  const s = { count:0, gross:0, commission:0, fine:0, net:0, settled:0, byType:{}, byUser:{} };
+  for(const o of list){
+    s.count++;
+    const amt = Number(o.amount), gross = Number(o.gross), comm = Number(o.commission), net = Number(o.net);
+    if(o.type === 'fine') s.fine += amt; else s.gross += gross;
+    s.commission += comm; s.net += net;
+    if(o.settled && o.type !== 'fine') s.settled += net;
+
+    const bt = s.byType[o.type] || (s.byType[o.type] = { count:0, gross:0, commission:0, net:0, fine:0, settled:0 });
+    bt.count++;
+    if(o.type==='fine') bt.fine += amt; else bt.gross += gross;
+    bt.commission += comm; bt.net += net;
+    if(o.settled && o.type !== 'fine') bt.settled += net;
+
+    const bu = s.byUser[o.user_id] || (s.byUser[o.user_id] = { count:0, gross:0, commission:0, net:0, fine:0, settled:0 });
+    bu.count++;
+    if(o.type==='fine') bu.fine += amt; else bu.gross += gross;
+    bu.commission += comm; bu.net += net;
+    if(o.settled && o.type !== 'fine') bu.settled += net;
+  }
+  return s;
+}
+
+async function boot(){
+  const el = $('#authView');
+  el.classList.remove('hidden');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><div>正在连接服务器…</div></div>';
+
+  const { data: { session } } = await sb.auth.getSession();
+  if(session && session.user){
+    await afterLogin(session.user.id);
+  } else {
+    renderAuth();
+  }
+
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if(event === 'SIGNED_OUT'){ ME = null; renderAuth(); }
+  });
+}
+
+/* ⭐⭐⭐ 修复的地方：加了重试机制，最多尝试 8 次，每次等 0.5 秒，共 4 秒 ⭐⭐⭐ */
+async function afterLogin(uid){
+  let profile = null;
+  for(let i = 0; i < 8; i++){
+    const { data, error } = await sb.from('profiles').select('*').eq('id', uid).maybeSingle();
+    if(data){ profile = data; break; }
+    await new Promise(r => setTimeout(r, 500));
+  }
+  if(!profile){
+    await sb.auth.signOut();
+    toast('用户资料缺失，请联系管理员');
+    renderAuth();
+    return;
+  }
+  ME = profile;
+  applyTheme(ME.theme || 'black');
+  await loadAll();
+  subscribeRealtime();
+  UI.tab = ME.role === 'player' ? 'report' : 'orders';
+  renderApp();
+}
+
+async function loadAll(){
+  const [c, p, o, d] = await Promise.all([
+    sb.from('clubs').select('*'),
+    sb.from('profiles').select('*'),
+    sb.from('orders').select('*'),
+    sb.from('dispatches').select('*')
+  ]);
+  DB.clubs = c.data || [];
+  DB.users = p.data || [];
+  DB.orders = (o.data || []).map(x => ({
+    ...x,
+    amount: Number(x.amount), tip: Number(x.tip), rate: Number(x.rate),
+    gross: Number(x.gross), commission: Number(x.commission), net: Number(x.net),
+    createdAt: Number(x.created_at)
+  }));
+  DB.dispatches = (d.data || []).map(x => ({
+    ...x,
+    amount: Number(x.amount),
+    targetUserId: x.target_user_id,
+    takenBy: x.taken_by,
+    orderId: x.order_id,
+    createdAt: Number(x.created_at),
+    takenAt: x.taken_at ? Number(x.taken_at) : null
+  }));
+}
+
+function subscribeRealtime(){
+  channels.forEach(c => sb.removeChannel(c));
+  channels = [];
+
+  const onOrders = payload => {
+    const ev = payload.eventType;
+    if(ev === 'INSERT'){
+      const x = payload.new;
+      if(!DB.orders.some(o => o.id === x.id)) DB.orders.push({...x, amount:Number(x.amount), tip:Number(x.tip), rate:Number(x.rate), gross:Number(x.gross), commission:Number(x.commission), net:Number(x.net), createdAt:Number(x.created_at)});
+    } else if(ev === 'UPDATE'){
+      const x = payload.new;
+      const i = DB.orders.findIndex(o => o.id === x.id);
+      if(i >= 0) DB.orders[i] = {...x, amount:Number(x.amount), tip:Number(x.tip), rate:Number(x.rate), gross:Number(x.gross), commission:Number(x.commission), net:Number(x.net), createdAt:Number(x.created_at)};
+    } else if(ev === 'DELETE'){
+      DB.orders = DB.orders.filter(o => o.id !== payload.old.id);
+    }
+    if(ME) renderApp();
+  };
+
+  const onDispatches = payload => {
+    const ev = payload.eventType;
+    if(ev === 'INSERT'){
+      const x = payload.new;
+      if(!DB.dispatches.some(d => d.id === x.id)) DB.dispatches.push({...x, amount:Number(x.amount), targetUserId:x.target_user_id, takenBy:x.taken_by, orderId:x.order_id, createdAt:Number(x.created_at), takenAt: x.taken_at ? Number(x.taken_at) : null});
+    } else if(ev === 'UPDATE'){
+      const x = payload.new;
+      const i = DB.dispatches.findIndex(d => d.id === x.id);
+      if(i >= 0) DB.dispatches[i] = {...x, amount:Number(x.amount), targetUserId:x.target_user_id, takenBy:x.taken_by, orderId:x.order_id, createdAt:Number(x.created_at), takenAt: x.taken_at ? Number(x.taken_at) : null};
+    } else if(ev === 'DELETE'){
+      DB.dispatches = DB.dispatches.filter(d => d.id !== payload.old.id);
+    }
+    if(ME) renderApp();
+  };
+
+  const onProfiles = payload => {
+    const ev = payload.eventType;
+    if(ev === 'INSERT'){
+      if(!DB.users.some(u => u.id === payload.new.id)) DB.users.push(payload.new);
+    } else if(ev === 'UPDATE'){
+      const i = DB.users.findIndex(u => u.id === payload.new.id);
+      if(i >= 0) DB.users[i] = payload.new;
+      if(ME && ME.id === payload.new.id){ ME = payload.new; applyTheme(ME.theme||'black'); }
+    } else if(ev === 'DELETE'){
+      DB.users = DB.users.filter(u => u.id !== payload.old.id);
+    }
+    if(ME) renderApp();
+  };
+
+  const onClubs = payload => {
+    const ev = payload.eventType;
+    if(ev === 'INSERT'){
+      if(!DB.clubs.some(c => c.id === payload.new.id)) DB.clubs.push(payload.new);
+    } else if(ev === 'UPDATE'){
+      const i = DB.clubs.findIndex(c => c.id === payload.new.id);
+      if(i >= 0) DB.clubs[i] = payload.new;
+    } else if(ev === 'DELETE'){
+      DB.clubs = DB.clubs.filter(c => c.id !== payload.old.id);
+    }
+    if(ME) renderApp();
+  };
+
+  channels.push(sb.channel('orders-rt').on('postgres_changes', {event:'*', schema:'public', table:'orders'}, onOrders).subscribe());
+  channels.push(sb.channel('dispatches-rt').on('postgres_changes', {event:'*', schema:'public', table:'dispatches'}, onDispatches).subscribe());
+  channels.push(sb.channel('profiles-rt').on('postgres_changes', {event:'*', schema:'public', table:'profiles'}, onProfiles).subscribe());
+  channels.push(sb.channel('clubs-rt').on('postgres_changes', {event:'*', schema:'public', table:'clubs'}, onClubs).subscribe());
+}
+
+/* ================= 最高管理员 ================= */
+async function loadAuthCodes(){
+  const { data, error } = await sb.from('auth_codes').select('*').order('created_at', { ascending: false });
+  if(error){ console.error(error); return; }
+  AUTH_CODES = data || [];
+}
+
+async function loadSuperClubs(){
+  const { data } = await sb.from('clubs').select('*').order('created_at', { ascending: false });
+  SUPER_CLUBS = data || [];
+}
+
+function openSuperEntry(){
+  if(SUPER_MODE){ renderSuperAdmin(); return; }
+  const pwd = prompt('请输入最高管理员密码：');
+  if(pwd === null) return;
+  if(pwd === SUPER_ADMIN_PASSWORD){ SUPER_MODE = true; renderSuperAdmin(); }
+  else { alert('密码错误'); }
+}
+
+function exitSuperMode(){ SUPER_MODE = false; $('#superView').classList.add('hidden'); renderAuth(); }
+
+async function renderSuperAdmin(){
+  await loadAuthCodes();
+  await loadSuperClubs();
+  $('#authView').classList.add('hidden');
+  $('#appView').classList.add('hidden');
+  const el = $('#superView');
+  el.classList.remove('hidden');
+
+  const total = AUTH_CODES.length;
+  const unused = AUTH_CODES.filter(c => !c.used).length;
+
+  el.innerHTML = `
+    <div style="min-height:100vh;padding:20px 16px 40px;max-width:720px;margin:0 auto">
+      <div class="card" style="border-color:var(--accent-border)">
+        <div class="card-title">🔐 最高管理员控制台</div>
+        <div class="hint">你可以生成授权码、查看所有俱乐部、移除任意俱乐部。</div>
+        <div class="stat-grid" style="margin-top:14px">
+          <div class="stat"><div class="k">总授权码</div><div class="v">${total}</div></div>
+          <div class="stat"><div class="k">未使用</div><div class="v ok">${unused}</div></div>
+        </div>
+        <button class="btn primary block" style="margin-top:8px" onclick="generateAuthCode()">+ 生成新授权码</button>
+      </div>
+      <div class="card">
+        <div class="card-title">🏛️ 所有俱乐部 <span class="badge gray">${SUPER_CLUBS.length} 个</span></div>
+        ${SUPER_CLUBS.length ? SUPER_CLUBS.map(c => `<div class="member" style="align-items:center;gap:10px"><div class="avatar">${esc(c.name.slice(0,1).toUpperCase())}</div><div style="flex:1;min-width:0"><div style="font-weight:600">${esc(c.name)}</div><div class="mut small">绑定码：${esc(c.code)} · 创建于 ${fmtTime(Number(c.created_at))}</div></div><button class="btn danger sm" onclick="delClub('${c.id}','${esc(c.name).replace(/'/g,"\\'")}')">移除</button></div>`).join('') : '<div class="empty">还没有俱乐部</div>'}
+      </div>
+      <div class="card">
+        <div class="card-title">📋 授权码列表</div>
+        ${AUTH_CODES.length ? AUTH_CODES.map(c => `<div class="member" style="align-items:center;gap:10px"><div class="avatar" style="background:${c.used ? '#3a3a3a' : 'linear-gradient(135deg,#22c55e,#16a957)'};font-size:12px">${c.used ? '✓' : '○'}</div><div style="flex:1;min-width:0"><div style="font-family:ui-monospace,monospace;font-size:14px;font-weight:700;letter-spacing:1px;color:${c.used ? 'var(--mut)' : 'var(--accent-text)'};word-break:break-all">${esc(c.code)}</div><div class="mut small">${c.used ? `已使用 · ${fmtTime(Number(c.used_at))}` : `生成于 ${fmtTime(Number(c.created_at))}`}</div></div>${!c.used ? `<button class="btn sm" onclick="copyAuthCode('${esc(c.code)}')">复制</button><button class="btn danger sm" onclick="delAuthCode('${c.id}')">删</button>` : ''}</div>`).join('') : '<div class="empty">还没有授权码，点上面按钮生成一个</div>'}
+      </div>
+      <div class="card" style="text-align:center">
+        <button class="btn block" onclick="exitSuperMode()">退出最高管理员</button>
+      </div>
+    </div>
+  `;
+}
+
+async function generateAuthCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code;
+  do{ code = ''; for(let i = 0; i < 16; i++){ code += chars[Math.floor(Math.random() * chars.length)]; if(i === 3 || i === 7 || i === 11) code += '-'; } } while(AUTH_CODES.some(c => c.code === code));
+
+  const row = { id: uid('ac_'), code: code, created_at: Date.now(), used: false, used_by: null, used_at: null };
+  const { error } = await sb.from('auth_codes').insert(row);
+  if(error){ toast('生成失败：' + error.message); return; }
+  AUTH_CODES.unshift(row);
+  toast('授权码已生成');
+  renderSuperAdmin();
+}
+
+function copyAuthCode(code){
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(code).then(() => toast('已复制'), () => toast(code)); }
+  else { toast(code); }
+}
+
+async function delAuthCode(id){
+  if(!confirm('确定删除这个授权码吗？')) return;
+  const { error } = await sb.from('auth_codes').delete().eq('id', id);
+  if(error){ toast('删除失败'); return; }
+  AUTH_CODES = AUTH_CODES.filter(c => c.id !== id);
+  toast('已删除');
+  renderSuperAdmin();
+}
+
+async function delClub(clubId, clubName){
+  if(!confirm(`确定要永久删除俱乐部「${clubName}」吗？\n\n该俱乐部所有成员、订单、派单都会一起被删除，不可恢复！`)) return;
+  if(!confirm(`再次确认：真的要删除「${clubName}」吗？`)) return;
+  const { error } = await sb.from('clubs').delete().eq('id', clubId);
+  if(error){ toast('删除失败：' + error.message); return; }
+  toast('俱乐部已删除');
+  renderSuperAdmin();
+}
+function renderAuth(){
+  const el = $('#authView');
+  el.classList.remove('hidden');
+  $('#appView').classList.add('hidden');
+  $('#superView').classList.add('hidden');
+  applyTheme('black');
+  let formHtml = '';
+  if(AUTH.mode === 'login'){
+    formHtml = `
+      <div class="field"><label>用户名</label><input id="lgUser" type="text" placeholder="请输入用户名" autocomplete="username"></div>
+      <div class="field"><label>密码</label><input id="lgPass" type="password" placeholder="请输入密码" autocomplete="current-password"></div>
+      <button class="btn primary block" onclick="doLogin()">登 录</button>
+      <div class="hint" style="text-align:center;margin-top:12px">登录状态会一直保持，除非你手动退出</div>`;
+  }else{
+    formHtml = `
+      <div class="seg" style="margin-bottom:18px">
+        <button class="${AUTH.role==='player'?'active':''}" onclick="setAuthRole('player')">陪玩</button>
+        <button class="${AUTH.role==='staff'?'active':''}" onclick="setAuthRole('staff')">员工</button>
+        <button class="${AUTH.role==='admin'?'active':''}" onclick="setAuthRole('admin')">开俱乐部</button>
+      </div>
+      <div class="field"><label>用户名（登录用）</label><input id="rgUser" type="text" placeholder="字母 / 数字，不含空格" autocomplete="off"></div>
+      <div class="field"><label>昵称</label><input id="rgNick" type="text" placeholder="显示的名称"></div>
+      <div class="field"><label>密码</label><input id="rgPass" type="password" placeholder="至少 6 位" autocomplete="new-password"></div>
+      ${AUTH.role==='admin'
+        ? `<div class="field"><label>俱乐部名称</label><input id="rgClub" type="text" placeholder="例如：星辰电竞"></div>
+           <div class="field"><label>授权码（向最高管理员索取）</label><input id="rgAuthCode" type="text" placeholder="16 位授权码" style="text-transform:uppercase" autocomplete="off"></div>
+           <div class="hint" style="margin-bottom:14px">需要授权码才能创建俱乐部。授权码由最高管理员统一发放，用一次即失效。</div>`
+        : `<div class="field"><label>俱乐部绑定码</label><input id="rgCode" type="text" placeholder="6 位绑定码" style="text-transform:uppercase" autocomplete="off"></div>
+           <div class="hint" style="margin-bottom:14px">向俱乐部管理员索取绑定码</div>`}
+      <button class="btn primary block" onclick="doRegister()">注 册</button>`;
+  }
+  el.innerHTML = `
+    <div class="auth-box">
+      <div class="brand"><div class="brand-logo">🎮</div><h1>陪玩俱乐部</h1><p>报备 · 派单 · 流水 · 工资 · 一站式管理</p></div>
+      <div class="seg" style="margin-bottom:18px">
+        <button class="${AUTH.mode==='login'?'active':''}" onclick="setAuthMode('login')">登录</button>
+        <button class="${AUTH.mode==='register'?'active':''}" onclick="setAuthMode('register')">注册</button>
+      </div>
+      <div class="card">${formHtml}</div>
+    </div>`;
+  if(!$('#superBtn')){
+    const btn = document.createElement('div');
+    btn.id = 'superBtn';
+    btn.textContent = '🔒';
+    btn.title = '最高管理员入口';
+    btn.onclick = openSuperEntry;
+    document.body.appendChild(btn);
+  }
+}
+function setAuthMode(m){ AUTH.mode = m; renderAuth(); }
+function setAuthRole(r){ AUTH.role = r; renderAuth(); }
+
+function usernameToEmail(u){ return u.toLowerCase() + '@pwclub.com'; }
+
+async function doLogin(){
+  const u = $('#lgUser').value.trim();
+  const p = $('#lgPass').value;
+  if(!u || !p) return toast('请填写用户名和密码');
+  const btn = event.target; btn.disabled = true; btn.textContent = '登录中…';
+  const { data, error } = await sb.auth.signInWithPassword({ email: usernameToEmail(u), password: p });
+  btn.disabled = false; btn.textContent = '登 录';
+  if(error){ toast(error.message === 'Invalid login credentials' ? '用户名或密码错误' : error.message); return; }
+  const sb_btn = $('#superBtn'); if(sb_btn) sb_btn.remove();
+  await afterLogin(data.user.id);
+  toast('欢迎回来');
+}
+
+function genCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code;
+  do{ code = ''; for(let i=0;i<6;i++) code += chars[Math.floor(Math.random()*chars.length)]; }
+  while(DB.clubs.some(c => c.code === code));
+  return code;
+}
+
+async function doRegister(){
+  const username = $('#rgUser').value.trim();
+  const nick = $('#rgNick').value.trim();
+  const pass = $('#rgPass').value;
+  if(!username || !pass) return toast('请填写用户名和密码');
+  if(!/^[a-zA-Z0-9_]+$/.test(username)) return toast('用户名只能包含字母、数字、下划线');
+  if(pass.length < 6) return toast('密码至少 6 位');
+
+  const btn = event.target; btn.disabled = true; btn.textContent = '注册中…';
+
+  const { data: signData, error: signErr } = await sb.auth.signUp({
+    email: usernameToEmail(username),
+    password: pass,
+    options: { emailRedirectTo: location.href }
+  });
+
+  if(signErr){
+    btn.disabled = false; btn.textContent = '注 册';
+    if(signErr.message.includes('already')) toast('用户名已被占用');
+    else toast(signErr.message);
+    return;
+  }
+
+  const newUid = signData.user.id;
+
+  if(AUTH.role === 'admin'){
+    const clubName = $('#rgClub').value.trim();
+    if(!clubName){
+      btn.disabled = false; btn.textContent = '注 册';
+      toast('请填写俱乐部名称');
+      await sb.auth.signOut();
+      return;
+    }
+
+    const { data: existingClubs } = await sb.from('clubs').select('id').limit(1);
+    const needCode = existingClubs && existingClubs.length > 0;
+
+    let codeRow = null;
+    if(needCode){
+      const authCodeInput = ($('#rgAuthCode') ? $('#rgAuthCode').value.trim().toUpperCase() : '');
+      if(!authCodeInput){
+        btn.disabled = false; btn.textContent = '注 册';
+        toast('请填写授权码');
+        await sb.auth.signOut();
+        return;
+      }
+      const { data: found, error: findErr } = await sb.from('auth_codes').select('*').eq('code', authCodeInput).limit(1);
+      if(findErr || !found || !found.length){
+        btn.disabled = false; btn.textContent = '注 册';
+        toast('授权码无效');
+        await sb.auth.signOut();
+        return;
+      }
+      codeRow = found[0];
+      if(codeRow.used){
+        btn.disabled = false; btn.textContent = '注 册';
+        toast('该授权码已被使用');
+        await sb.auth.signOut();
+        return;
+      }
+    }
+
+    const clubId = uid();
+    const clubRow = {
+      id: clubId, name: clubName, code: genCode(), owner_id: newUid,
+      commission: DEFAULT_COMMISSION,
+      projects: [
+        { id: uid(), name:'王者荣耀 · 排位', price: 50 },
+        { id: uid(), name:'英雄联盟 · 匹配', price: 40 },
+        { id: uid(), name:'和平精英 · 陪玩', price: 35 },
+        { id: uid(), name:'云顶之弈 · 上分', price: 45 }
+      ],
+      gifts: [
+        { id: uid(), name:'小礼物', price: 10 },
+        { id: uid(), name:'中礼物', price: 50 },
+        { id: uid(), name:'大礼物', price: 100 },
+        { id: uid(), name:'豪华礼物', price: 520 }
+      ],
+      created_at: Date.now()
+    };
+    const { error: cErr } = await sb.from('clubs').insert(clubRow);
+    if(cErr){ toast('创建俱乐部失败：' + cErr.message); btn.disabled=false; btn.textContent='注 册'; return; }
+
+    const { error: pErr } = await sb.from('profiles').insert({
+      id: newUid, username, nick: nick||username, role:'admin',
+      club_id: clubId, theme:'black', created_at: Date.now()
+    });
+    if(pErr){ toast('创建资料失败：' + pErr.message); btn.disabled=false; btn.textContent='注 册'; return; }
+
+    if(codeRow){
+      await sb.from('auth_codes').update({ used: true, used_by: newUid, used_at: Date.now() }).eq('id', codeRow.id);
+    }
+
+    await loadAll();
+    btn.disabled = false; btn.textContent = '注 册';
+    const sb_btn = $('#superBtn'); if(sb_btn) sb_btn.remove();
+    await afterLogin(newUid);
+    toast('俱乐部创建成功！绑定码 ' + clubRow.code);
+  } else {
+    const code = $('#rgCode').value.trim().toUpperCase();
+    if(!code){ toast('请填写俱乐部绑定码'); btn.disabled=false; btn.textContent='注 册'; await sb.auth.signOut(); return; }
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session){
+      toast('注册成功！请到邮箱确认后登录');
+      btn.disabled = false; btn.textContent = '注 册';
+      AUTH.mode = 'login'; renderAuth();
+      return;
+    }
+    const { data: clubRow, error: cFind } = await sb.from('clubs').select('*').eq('code', code).single();
+    if(cFind || !clubRow){
+      toast('绑定码不存在');
+      await sb.auth.signOut();
+      btn.disabled = false; btn.textContent = '注 册';
+      return;
+    }
+    const role = AUTH.role === 'staff' ? 'staff' : 'player';
+    const { error: pErr } = await sb.from('profiles').insert({
+      id: newUid, username, nick: nick||username, role,
+      club_id: clubRow.id, theme:'black', created_at: Date.now()
+    });
+    if(pErr){
+      toast('创建资料失败：' + pErr.message);
+      await sb.auth.signOut();
+      btn.disabled = false; btn.textContent = '注 册';
+      return;
+    }
+    btn.disabled = false; btn.textContent = '注 册';
+    const sb_btn = $('#superBtn'); if(sb_btn) sb_btn.remove();
+    await afterLogin(newUid);
+    toast('已加入「' + clubRow.name + '」');
+  }
+}
+
+async function logout(){
+  if(!confirm('确定退出登录吗？')) return;
+  channels.forEach(c => sb.removeChannel(c));
+  channels = [];
+  await sb.auth.signOut();
+  ME = null;
+  AUTH = { mode:'login', role:'player' };
+  applyTheme('black');
+  renderAuth();
+}
+
+function renderApp(){
+  if(!ME) return;
+  const club = DB.clubs.find(c => c.id === ME.club_id);
+  if(!club){ logout(); return; }
+  const sb_btn = $('#superBtn'); if(sb_btn) sb_btn.remove();
+
+  $('#authView').classList.add('hidden');
+  $('#superView').classList.add('hidden');
+  $('#appView').classList.remove('hidden');
+
+  $('#topbar').innerHTML = `
+    <div>
+      <div class="tb-club">${esc(club.name)}</div>
+      <div class="tb-sub">${roleBadge(ME.role)} · ${esc(ME.nick||ME.username)}</div>
+    </div>
+    <button class="btn ghost sm" onclick="logout()">退出</button>`;
+
+  const tabs = isManagerRole(ME.role)
+    ? [['orders','报备单'],['dispatch','派单'],['fine','罚款'],['flow','流水工资'],['rank','榜单'],['settings','设置']]
+    : [['report','报备'],['orders','我的记录'],['dispatch','派单'],['flow','流水工资'],['rank','榜单'],['settings','我的']];
+
+  if(!tabs.some(t => t[0] === UI.tab)) UI.tab = tabs[0][0];
+
+  $('#tabbar').innerHTML = tabs.map(([k,label]) => `
+    <button class="tab ${UI.tab===k?'active':''}" onclick="switchTab('${k}')">
+      <span class="tab-ico">${TAB_ICONS[k]}</span><span>${label}</span>
+    </button>`).join('');
+
+  const c = $('#content');
+  if(UI.tab === 'report' && ME.role === 'player')  renderReport(c);
+  else if(UI.tab === 'orders')   renderOrders(c);
+  else if(UI.tab === 'dispatch') renderDispatch(c);
+  else if(UI.tab === 'fine' && isManagerRole(ME.role)) renderFinePage(c);
+  else if(UI.tab === 'flow')     renderFlow(c);
+  else if(UI.tab === 'rank')     renderRanking(c);
+  else if(UI.tab === 'settings') renderSettings(c);
+
+  window.scrollTo(0, 0);
+}
+function switchTab(t){ UI.tab = t; renderApp(); }
+
+function setReportType(t){
+  UI.reportType = t; UI.reportTip = 0; UI.reportDiscount = 10; UI.reportImage = null; UI.reportSettled = false;
+  renderReport($('#content'));
+}
+
+function renderReport(el){
+  if(ME.role !== 'player'){ el.innerHTML = '<div class="empty">管理员/员工无报备权限</div>'; return; }
+  const club = DB.clubs.find(c => c.id === ME.club_id);
+  const t = UI.reportType;
+  const info = ORDER_TYPES[t];
+  const rate = getRate(t);
+
+  const typeBtns = REPORT_TYPES.map(k => {
+    const ti = ORDER_TYPES[k];
+    return `<button class="type-btn ${k===t?'active':''}" style="--c:${ti.color}" onclick="setReportType('${k}')">
+      <span class="ti">${ti.icon}</span><span>${ti.name}</span></button>`;
+  }).join('');
+
+  let body = '';
+  if(t === 'peiwan'){
+    const projects = club.projects || [];
+    body = `
+      <div class="field">
+        <label>选择项目（游戏单）</label>
+        <select id="rfProj" onchange="onPickProject(this.value)">
+          <option value="">— 请选择项目 —</option>
+          ${projects.map(p => `<option value="${p.id}" data-price="${p.price}">${esc(p.name)} · ¥${p.price}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>项目金额（元）</label>
+        <input type="number" id="rfAmount" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="updatePreview()"></div>
+      <details class="fold" id="tipFold">
+        <summary><span>➕ 加价</span><span class="mut small" id="tipLabel">未加价</span></summary>
+        <div class="fold-body">
+          <div class="tip-grid">
+            ${[1,2,3,4,5,6,7,8,9,10].map(n => `<button class="tip-btn" data-tip="${n}" onclick="setTip(${n})">+${n}</button>`).join('')}
+          </div>
+          <div style="margin-top:10px"><input type="number" id="rfTipCustom" placeholder="自定义加价金额（元）" step="0.01" min="0" inputmode="decimal" oninput="onTipCustom(this.value)"></div>
+        </div>
+      </details>
+      <details class="fold" id="discFold">
+        <summary><span>🏷️ 折扣</span><span class="mut small" id="discLabel">不打折</span></summary>
+        <div class="fold-body">
+          <div class="disc-grid">
+            ${[10,9,8,7,6,5,4,3,2,1].map(d => `<button class="disc-btn ${d===UI.reportDiscount?'active':''}" data-disc="${d}" onclick="setDiscount(${d})">${d}折</button>`).join('')}
+          </div>
+        </div>
+      </details>`;
+  } else if(t === 'gift'){
+    const gifts = club.gifts || [];
+    body = `
+      <div class="field">
+        <label>选择礼物</label>
+        <select id="rfGift" onchange="onPickGift(this.value)">
+          <option value="">— 请选择礼物 —</option>
+          ${gifts.map(g => `<option value="${g.id}" data-price="${g.price}">${esc(g.name)} · ¥${g.price}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>礼物金额（元）</label>
+        <input type="number" id="rfAmount" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="updatePreview()"></div>`;
+  } else {
+    body = `
+      <div class="field"><label>自定义项目名称</label><input type="text" id="rfTitle" placeholder="例如：包周陪玩"></div>
+      <div class="field"><label>金额（元）</label>
+        <input type="number" id="rfAmount" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="updatePreview()"></div>`;
+  }
+
+  el.innerHTML = `
+    <div class="type-grid">${typeBtns}</div>
+    <div class="card">
+      <div class="card-title">
+        <span style="color:${info.color}">${info.icon} ${info.name}报备</span>
+        <span class="badge">抽成 ${rate}%</span>
+      </div>
+      ${body}
+      <div class="field"><label>备注</label><input type="text" id="rfNote" placeholder="老板ID / 单子内容…"></div>
+      <div class="field">
+        <label>备注图片（可选）</label>
+        <div id="rfImgBox"></div>
+        <input type="file" id="rfImgInput" accept="image/*" style="display:none" onchange="onPickReportImage(this)">
+        <button class="btn sm ghost" style="width:100%;margin-top:8px" onclick="document.getElementById('rfImgInput').click()">📷 添加图片</button>
+      </div>
+      <div class="field">
+        <label>提前结清</label>
+        <label class="check-line">
+          <input type="checkbox" id="rfSettled" ${UI.reportSettled?'checked':''} onchange="UI.reportSettled=this.checked">
+          <span>本单已提前结清（金额仍计入工资，并在工资表「已结」栏单独显示）</span>
+        </label>
+      </div>
+      <div class="preview" id="preview"></div>
+      <button class="btn primary block" onclick="submitReport()">提交报备</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📌 今日我的报备</div>
+      <div id="todayList" class="mini-list"></div>
+    </div>`;
+
+  renderReportImagePreview();
+  updatePreview();
+  renderTodayMini();
+}
+
+function onPickProject(id){
+  const sel = $('#rfProj');
+  const opt = sel.options[sel.selectedIndex];
+  if(id && opt) $('#rfAmount').value = opt.dataset.price || '';
+  updatePreview();
+}
+function onPickGift(id){
+  const sel = $('#rfGift');
+  const opt = sel.options[sel.selectedIndex];
+  if(id && opt) $('#rfAmount').value = opt.dataset.price || '';
+  updatePreview();
+}
+function setTip(n){ UI.reportTip = (UI.reportTip === n) ? 0 : n; syncTipUI(); updatePreview(); }
+function onTipCustom(v){ UI.reportTip = round2(parseFloat(v)||0); syncTipUI(true); updatePreview(); }
+function syncTipUI(keepCustom){
+  $$('.tip-btn').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.tip) === UI.reportTip && !keepCustom));
+  const cus = $('#rfTipCustom');
+  if(cus && !keepCustom) cus.value = UI.reportTip > 0 ? UI.reportTip : '';
+  const lbl = $('#tipLabel');
+  if(lbl) lbl.textContent = UI.reportTip > 0 ? ('+¥' + round2(UI.reportTip)) : '未加价';
+}
+function setDiscount(d){
+  UI.reportDiscount = d;
+  $$('.disc-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.disc) === d));
+  const lbl = $('#discLabel');
+  if(lbl) lbl.textContent = (d === 10 ? '不打折' : d + '折');
+  updatePreview();
+}
+async function onPickReportImage(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  try{
+    const dataUrl = await compressImage(file);
+    if(dataUrl.length > 700000){ toast('图片太大，请换一张'); return; }
+    UI.reportImage = dataUrl; renderReportImagePreview();
+  }catch(e){ toast('图片处理失败'); }
+  input.value = '';
+}
+function renderReportImagePreview(){
+  const box = $('#rfImgBox');
+  if(!box) return;
+  if(!UI.reportImage){ box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="img-preview"><img src="${UI.reportImage}" onclick="viewImage(this.src)"><span class="rm" onclick="removeReportImage()">×</span></div>`;
+}
+function removeReportImage(){ UI.reportImage = null; renderReportImagePreview(); }
+function prow(k, v, cls){ return `<div class="prow"><span>${k}</span><span class="${cls||''}">${v}</span></div>`; }
+
+function updatePreview(){
+  const el = $('#preview');
+  if(!el) return;
+  const t = UI.reportType;
+  const rate = getRate(t);
+  const amountEl = $('#rfAmount');
+  const amount = amountEl ? (parseFloat(amountEl.value) || 0) : 0;
+  if(t === 'peiwan'){
+    const tip = UI.reportTip || 0, disc = UI.reportDiscount || 10;
+    const r = calcOrder(t, amount, tip, disc, rate);
+    let rows = prow('项目金额', money(amount));
+    if(tip > 0) rows += prow('加价', '+' + money(tip));
+    if(disc < 10) rows += prow('折扣', disc + ' 折');
+    if(tip > 0 || disc < 10) rows += prow('折后总额', money(r.gross));
+    rows += prow('抽成（' + rate + '%）', '-' + money(r.commission), 'warn');
+    rows += prow('实得', money(r.net), 'ok');
+    el.innerHTML = rows;
+  }else{
+    const r = calcOrder(t, amount, 0, 10, rate);
+    el.innerHTML = prow('金额', money(amount)) +
+      prow('抽成（' + rate + '%）', '-' + money(r.commission), 'warn') +
+      prow('实得', money(r.net), 'ok');
+  }
+}
+
+async function submitReport(){
+  if(ME.role !== 'player') return;
+  const t = UI.reportType;
+  const amountEl = $('#rfAmount');
+  const amount = amountEl ? parseFloat(amountEl.value) : NaN;
+  if(!amount || amount <= 0) return toast('请输入有效金额');
+  const note = $('#rfNote') ? $('#rfNote').value.trim() : '';
+  const title = $('#rfTitle') ? $('#rfTitle').value.trim() : '';
+  const rate = getRate(t);
+  const tip = (t === 'peiwan') ? (UI.reportTip || 0) : 0;
+  const disc = (t === 'peiwan') ? (UI.reportDiscount || 10) : 10;
+  const r = calcOrder(t, amount, tip, disc, rate);
+
+  const btn = event.target; btn.disabled = true; btn.textContent = '提交中…';
+  const row = {
+    id: uid(), club_id: ME.club_id, user_id: ME.id, type: t, title,
+    amount: round2(amount), tip: round2(tip), discount: disc, rate,
+    gross: r.gross, commission: r.commission, net: r.net,
+    note, image: UI.reportImage || null,
+    settled: !!UI.reportSettled,
+    created_at: Date.now()
+  };
+  const { error } = await sb.from('orders').insert(row);
+  btn.disabled = false; btn.textContent = '提交报备';
+  if(error){ toast('提交失败：' + error.message); return; }
+  if(!DB.orders.some(o => o.id === row.id)) DB.orders.push({...row, createdAt: row.created_at});
+  toast('报备成功 ✅');
+  setReportType(t);
+}
+
+function renderTodayMini(){
+  const el = $('#todayList');
+  if(!el) return;
+  const today = todayStr();
+  const list = DB.orders.filter(o => o.user_id === ME.id && fmtDate(o.createdAt) === today).sort((a,b) => b.createdAt - a.createdAt);
+  if(!list.length){ el.innerHTML = '<div class="empty">今天还没有报备记录</div>'; return; }
+  el.innerHTML = list.map(o => {
+    const ti = ORDER_TYPES[o.type];
+    const extra = [];
+    if(Number(o.tip) > 0) extra.push('加价');
+    if(Number(o.discount) < 10) extra.push(o.discount + '折');
+    if(o.settled) extra.push('已结');
+    return `<div class="mini-item">
+      <span class="dot" style="background:${ti.color}"></span>
+      <span class="mi-name">${ti.icon} ${ti.name}${extra.length?' <span class="mut small">('+extra.join(' ')+')</span>':''}</span>
+      <span class="mi-amt">${money(o.gross)}</span>
+      <span class="mi-net ${o.net<0?'warn':'ok'}">${money(o.net)}</span>
+    </div>`;
+  }).join('');
+}
+
+function setOrderFilter(k, v){ UI[k] = v; renderOrders($('#content')); }
+
+function renderOrders(el){
+  const isMgr = isManagerRole(ME.role);
+  let list = DB.orders.filter(o => o.club_id === ME.club_id);
+  if(!isMgr) list = list.filter(o => o.user_id === ME.id);
+  if(UI.oType !== 'all') list = list.filter(o => o.type === UI.oType);
+  if(isMgr && UI.oUser !== 'all') list = list.filter(o => o.user_id === UI.oUser);
+  if(UI.oDate) list = list.filter(o => fmtDate(o.createdAt) === UI.oDate);
+  list.sort((a,b) => b.createdAt - a.createdAt);
+
+  const stats = calcStats(list);
+  const members = DB.users.filter(x => x.club_id === ME.club_id);
+
+  const statCards = isMgr
+    ? `<div class="stat"><div class="k">单数</div><div class="v">${stats.count}</div></div>
+       <div class="stat"><div class="k">流水</div><div class="v pri">${money(stats.gross)}</div></div>
+       <div class="stat"><div class="k">抽成</div><div class="v warn">${money(stats.commission)}</div></div>
+       <div class="stat"><div class="k">实发合计</div><div class="v ok">${money(stats.net)}</div></div>`
+    : `<div class="stat"><div class="k">单数</div><div class="v">${stats.count}</div></div>
+       <div class="stat"><div class="k">我的实得</div><div class="v ok">${money(stats.net)}</div></div>`;
+
+  el.innerHTML = `
+    <div class="filters">
+      <select onchange="setOrderFilter('oType', this.value)">
+        <option value="all" ${UI.oType==='all'?'selected':''}>全部类型</option>
+        ${ALL_TYPES.map(k => `<option value="${k}" ${UI.oType===k?'selected':''}>${ORDER_TYPES[k].name}</option>`).join('')}
+      </select>
+      ${isMgr ? `
+        <select onchange="setOrderFilter('oUser', this.value)">
+          <option value="all" ${UI.oUser==='all'?'selected':''}>全部成员</option>
+          ${members.map(m => `<option value="${m.id}" ${UI.oUser===m.id?'selected':''}>${esc(m.nick||m.username)}</option>`).join('')}
+        </select>` : ''}
+      <input type="date" value="${UI.oDate}" onchange="setOrderFilter('oDate', this.value)">
+      ${UI.oDate ? `<button class="btn sm" onclick="setOrderFilter('oDate','')">清除</button>` : ''}
+    </div>
+
+    <div class="stat-grid">${statCards}</div>
+    ${stats.fine > 0 ? `<div class="fine-hero"><div class="k">⚠️ 罚款扣款</div><div class="v">-${money(stats.fine)}</div></div>` : ''}
+    <div id="orderList">
+      ${list.length ? list.map(o => orderCard(o, isMgr)).join('') : '<div class="empty">暂无订单记录</div>'}
+    </div>`;
+}
+
+function orderCard(o, isMgr){
+  const ti = ORDER_TYPES[o.type];
+  const owner = DB.users.find(u => u.id === o.user_id);
+  const ownerName = owner ? (owner.nick || owner.username) : '未知';
+  const isFine = o.type === 'fine';
+  const titleLine = o.title ? `<span class="chip">${esc(o.title)}</span>` : '';
+  const settledTag = o.settled ? `<span class="badge gold">已结</span>` : '';
+
+  if(isFine){
+    return `<div class="order fine">
+      <div class="o-head"><span class="o-type" style="background:#ef444422;color:#ef4444">⚠️ 罚款单</span><span class="o-time">${fmtTime(o.createdAt)}</span></div>
+      <div class="o-amt" style="color:#ff8189">-${money(o.amount)}</div>
+      ${o.note ? `<div class="o-meta">原因：${esc(o.note)}</div>` : ''}
+      ${o.image ? `<img class="o-thumb" src="${o.image}" onclick="viewImage(this.src)">` : ''}
+      <div class="o-foot"><span class="o-note">${isMgr ? `<span class="chip">${esc(ownerName)}</span>` : ''}从工资扣除</span>${isMgr ? `<button class="btn danger sm" onclick="delOrder('${o.id}')">删除</button>` : ''}</div>
+    </div>`;
+  }
+
+  let detail = '';
+  if(o.type === 'peiwan'){
+    detail = `项目 ${money(o.amount)}`;
+    if(Number(o.tip) > 0) detail += ` + 加价 ${money(o.tip)}`;
+    if(Number(o.discount) < 10) detail += ` × ${o.discount}折`;
+    detail += ` = ${money(o.gross)}`;
+  }else{ detail = `金额 ${money(o.amount)}`; }
+
+  if(isMgr){
+    return `<div class="order ${o.settled?'settled':''}">
+      <div class="o-head"><span class="o-type" style="background:${ti.color}22;color:${ti.color}">${ti.icon} ${ti.name}</span><span class="o-time">${fmtTime(o.createdAt)}</span></div>
+      <div class="o-amt">${money(o.gross)}</div>
+      <div class="o-meta">${titleLine}${settledTag}${detail}</div>
+      <div class="o-meta" style="margin-top:6px">抽成 <b>${money(o.commission)}</b>（${o.rate}%） · 实得 <b class="ok">${money(o.net)}</b></div>
+      ${o.image ? `<img class="o-thumb" src="${o.image}" onclick="viewImage(this.src)">` : ''}
+      <div class="o-foot"><span class="o-note"><span class="chip">${esc(ownerName)}</span>${o.note ? esc(o.note) : '<span class="mut">无备注</span>'}</span><button class="btn danger sm" onclick="delOrder('${o.id}')">删除</button></div>
+    </div>`;
+  }else{
+    return `<div class="order ${o.settled?'settled':''}">
+      <div class="o-head"><span class="o-type" style="background:${ti.color}22;color:${ti.color}">${ti.icon} ${ti.name}</span><span class="o-time">${fmtTime(o.createdAt)}</span></div>
+      <div class="o-meta">${titleLine}${settledTag}${o.note ? esc(o.note) : '<span class="mut">无备注</span>'}</div>
+      <div class="o-meta" style="margin-top:6px">实得 <b class="ok">${money(o.net)}</b></div>
+      ${o.image ? `<img class="o-thumb" src="${o.image}" onclick="viewImage(this.src)">` : ''}
+    </div>`;
+  }
+}
+
+async function delOrder(id){
+  if(!isManagerRole(ME.role)) return;
+  if(!confirm('确定删除这条订单吗？')) return;
+  const { error } = await sb.from('orders').delete().eq('id', id);
+  if(error){ toast('删除失败：' + error.message); return; }
+  DB.orders = DB.orders.filter(o => o.id !== id);
+  toast('订单已删除'); renderApp();
+}
+
+function renderDispatch(el){
+  const isMgr = isManagerRole(ME.role);
+  const members = DB.users.filter(x => x.club_id === ME.club_id);
+  const all = DB.dispatches.filter(d => d.club_id === ME.club_id).sort((a,b) => b.createdAt - a.createdAt);
+
+  if(isMgr){
+    const open = all.filter(d => d.status === 'open');
+    const done = all.filter(d => d.status !== 'open');
+    el.innerHTML = `
+      <div class="card">
+        <div class="card-title">📢 发布派单</div>
+        <div class="field"><label>派单标题</label><input type="text" id="dpTitle" placeholder="例如：王者荣耀 星耀带打 3 局"></div>
+        <div class="field"><label>派单说明</label><input type="text" id="dpDesc" placeholder="时间 / 要求 / 老板信息…"></div>
+        <div class="field"><label>派单金额（元）</label><input type="number" id="dpAmount" placeholder="0.00" step="0.01" min="0" inputmode="decimal"></div>
+        <div class="field"><label>指派对象</label>
+          <select id="dpTarget">
+            <option value="">公开派单（所有人可接）</option>
+            ${members.filter(m => m.role === 'player').map(m => `<option value="${m.id}">${esc(m.nick||m.username)}</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn primary block" onclick="publishDispatch()">发布派单</button>
+      </div>
+      <div class="card"><div class="card-title">🟢 待接派单 <span class="badge gray">${open.length}</span></div>${open.length ? open.map(d => dispatchCard(d, true)).join('') : '<div class="empty">暂无待接派单</div>'}</div>
+      <div class="card"><div class="card-title">📜 已接派单 <span class="badge gray">${done.length}</span></div>${done.length ? done.map(d => dispatchCard(d, true)).join('') : '<div class="empty">暂无已接派单</div>'}</div>`;
+  }else{
+    const mine = all.filter(d => d.taken_by === ME.id);
+    const canTake = all.filter(d => d.status === 'open' && (!d.target_user_id || d.target_user_id === ME.id));
+    el.innerHTML = `
+      <div class="card"><div class="card-title">🔥 可接派单 <span class="badge">${canTake.length}</span></div>${canTake.length ? canTake.map(d => dispatchCard(d, false)).join('') : '<div class="empty">暂无可用派单</div>'}</div>
+      <div class="card"><div class="card-title">✅ 我已接的派单 <span class="badge gray">${mine.length}</span></div>${mine.length ? mine.map(d => dispatchCard(d, false)).join('') : '<div class="empty">还没有接过派单</div>'}</div>`;
+  }
+}
+
+function dispatchCard(d, isMgr){
+  const target = d.target_user_id ? DB.users.find(u => u.id === d.target_user_id) : null;
+  const taker = d.taken_by ? DB.users.find(u => u.id === d.taken_by) : null;
+  const targetName = target ? (target.nick || target.username) : '公开';
+  const takerName = taker ? (taker.nick || taker.username) : '';
+  let action = '';
+  if(isMgr) action = `<button class="btn danger sm" onclick="delDispatch('${d.id}')">删除</button>`;
+  else if(d.status === 'open' && (!d.target_user_id || d.target_user_id === ME.id)) action = `<button class="btn primary sm" onclick="takeDispatch('${d.id}')">接 单</button>`;
+  else if(d.taken_by === ME.id) action = `<span class="badge">已接单</span>`;
+
+  return `<div class="dispatch ${d.status==='open'?'open':''}">
+    <h4 class="d-title">${esc(d.title)}</h4>
+    ${d.description ? `<div class="d-desc">${esc(d.description)}</div>` : ''}
+    <div class="row-flex" style="justify-content:space-between">
+      <span class="d-amount">${money(d.amount)}</span>
+      <span class="mut small">${fmtTime(d.createdAt)}</span>
+    </div>
+    <div class="d-foot"><span class="mut small">${d.status === 'open' ? `指派：${esc(targetName)}` : `接单人：${esc(takerName)}`}</span>${action}</div>
+  </div>`;
+}
+
+async function publishDispatch(){
+  if(!isManagerRole(ME.role)) return;
+  const title = $('#dpTitle').value.trim();
+  const desc = $('#dpDesc').value.trim();
+  const amount = parseFloat($('#dpAmount').value);
+  const target = $('#dpTarget').value;
+  if(!title) return toast('请填写派单标题');
+  if(!amount || amount <= 0) return toast('请输入有效金额');
+  const row = {
+    id: uid(), club_id: ME.club_id, title, description: desc, amount: round2(amount),
+    target_user_id: target || null, status: 'open', taken_by: null, order_id: null,
+    created_at: Date.now(), taken_at: null
+  };
+  const { error } = await sb.from('dispatches').insert(row);
+  if(error){ toast('发布失败：' + error.message); return; }
+  DB.dispatches.push({...row, targetUserId: row.target_user_id, takenBy: null, orderId: null, createdAt: row.created_at, takenAt: null});
+  toast('派单已发布 ✅'); renderDispatch($('#content'));
+}
+
+async function takeDispatch(id){
+  if(ME.role !== 'player') return toast('只有陪玩可以接单');
+  const d = DB.dispatches.find(x => x.id === id);
+  if(!d || d.status !== 'open') return toast('该派单已被接走');
+  if(d.target_user_id && d.target_user_id !== ME.id) return toast('该派单不是指派给你的');
+  const rate = getRate('paidan');
+  const r = calcOrder('paidan', d.amount, 0, 10, rate);
+  const orderId = uid();
+  const orderRow = {
+    id: orderId, club_id: ME.club_id, user_id: ME.id, type:'paidan', title: d.title,
+    amount: d.amount, tip:0, discount:10, rate,
+    gross:r.gross, commission:r.commission, net:r.net,
+    note: d.description || '', image:null, settled:false, created_at: Date.now()
+  };
+  const { error: e1 } = await sb.from('dispatches').update({ status:'taken', taken_by: ME.id, taken_at: Date.now(), order_id: orderId }).eq('id', id);
+  if(e1){ toast('接单失败：' + e1.message); return; }
+  const { error: e2 } = await sb.from('orders').insert(orderRow);
+  if(e2){ toast('生成订单失败：' + e2.message); return; }
+  toast('接单成功 🎉');
+}
+
+async function delDispatch(id){
+  if(!isManagerRole(ME.role)) return;
+  if(!confirm('确定删除这条派单吗？')) return;
+  const { error } = await sb.from('dispatches').delete().eq('id', id);
+  if(error){ toast('删除失败：' + error.message); return; }
+  DB.dispatches = DB.dispatches.filter(x => x.id !== id);
+  toast('派单已删除'); renderDispatch($('#content'));
+}
+
+function renderFinePage(el){
+  if(!isManagerRole(ME.role)){ el.innerHTML = '<div class="empty">无权访问</div>'; return; }
+  const members = DB.users.filter(x => x.club_id === ME.club_id && x.role === 'player');
+  const allFines = DB.orders.filter(o => o.club_id === ME.club_id && o.type === 'fine').sort((a,b) => b.createdAt - a.createdAt);
+  const totalFine = allFines.reduce((s,o) => s + Number(o.amount), 0);
+  const byUser = {};
+  allFines.forEach(o => {
+    if(!byUser[o.user_id]) byUser[o.user_id] = { amount:0, count:0 };
+    byUser[o.user_id].amount += Number(o.amount);
+    byUser[o.user_id].count++;
+  });
+
+  el.innerHTML = `
+    <div class="fine-hero">
+      <div class="k">⚠️ 累计罚款总额</div>
+      <div class="v">${money(totalFine)}</div>
+      <div class="small" style="color:#ff9aa1;margin-top:6px">共 ${allFines.length} 笔罚款，将全额从陪玩工资中扣除</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📝 下发罚款单</div>
+      <div class="field"><label>选择陪玩</label>
+        <select id="fineUser"><option value="">— 请选择陪玩 —</option>${members.map(m => `<option value="${m.id}">${esc(m.nick||m.username)}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>罚款金额（元）</label><input type="number" id="fineAmount" placeholder="0.00" step="0.01" min="0" inputmode="decimal"></div>
+      <div class="field"><label>罚款原因</label><input type="text" id="fineReason" placeholder="例如：迟到"></div>
+      <div class="field"><label>凭证图片（可选）</label><div id="fineImgBox"></div>
+        <input type="file" id="fineImgInput" accept="image/*" style="display:none" onchange="onPickFineImage(this)">
+        <button class="btn sm ghost" style="width:100%;margin-top:8px" onclick="document.getElementById('fineImgInput').click()">📷 添加图片</button>
+      </div>
+      <button class="btn warn block" onclick="issueFine()">⚠️ 下发罚款单</button>
+    </div>
+    ${Object.keys(byUser).length ? `<div class="card"><div class="card-title">👤 各成员罚款汇总</div>
+      ${Object.keys(byUser).map(uidKey => {
+        const usr = DB.users.find(u => u.id === uidKey);
+        const nm = usr ? (usr.nick || usr.username) : '未知';
+        const bu = byUser[uidKey];
+        return `<div class="fine-user"><div class="avatar" style="background:linear-gradient(135deg,#ef4444,#ff8189)">${esc(nm.slice(0,1).toUpperCase())}</div><div style="flex:1"><div>${esc(nm)}</div><div class="mut small">${bu.count} 笔罚款</div></div><div class="warn" style="font-weight:700">-${money(bu.amount)}</div></div>`;
+      }).join('')}
+    </div>` : ''}
+    <div class="card"><div class="card-title">📜 罚款记录 <span class="badge gray">${allFines.length}</span></div>
+      ${allFines.length ? allFines.map(o => fineCard(o)).join('') : '<div class="empty">暂无罚款记录</div>'}
+    </div>`;
+  renderFineImagePreview();
+}
+
+function fineCard(o){
+  const owner = DB.users.find(u => u.id === o.user_id);
+  const ownerName = owner ? (owner.nick || owner.username) : '未知';
+  return `<div class="order fine">
+    <div class="o-head"><span class="o-type" style="background:#ef444422;color:#ef4444">⚠️ 罚款单</span><span class="o-time">${fmtTime(o.createdAt)}</span></div>
+    <div class="o-amt" style="color:#ff8189">-${money(o.amount)}</div>
+    ${o.note ? `<div class="o-meta">原因：${esc(o.note)}</div>` : ''}
+    ${o.image ? `<img class="o-thumb" src="${o.image}" onclick="viewImage(this.src)">` : ''}
+    <div class="o-foot"><span class="o-note"><span class="chip">${esc(ownerName)}</span>从工资扣除</span><button class="btn danger sm" onclick="delOrder('${o.id}')">删除</button></div>
+  </div>`;
+}
+
+async function onPickFineImage(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  try{
+    const dataUrl = await compressImage(file);
+    if(dataUrl.length > 700000){ toast('图片太大，请换一张'); return; }
+    UI.fineImage = dataUrl; renderFineImagePreview();
+  }catch(e){ toast('图片处理失败'); }
+  input.value = '';
+}
+function renderFineImagePreview(){
+  const box = $('#fineImgBox');
+  if(!box) return;
+  if(!UI.fineImage){ box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="img-preview"><img src="${UI.fineImage}" onclick="viewImage(this.src)"><span class="rm" onclick="removeFineImage()">×</span></div>`;
+}
+function removeFineImage(){ UI.fineImage = null; renderFineImagePreview(); }
+
+async function issueFine(){
+  if(!isManagerRole(ME.role)) return;
+  const targetId = $('#fineUser').value;
+  const amount = parseFloat($('#fineAmount').value);
+  const reason = $('#fineReason').value.trim();
+  if(!targetId) return toast('请选择陪玩');
+  if(!amount || amount <= 0) return toast('请输入有效金额');
+  const r = calcOrder('fine', amount, 0, 10, 0);
+  const row = {
+    id: uid(), club_id: ME.club_id, user_id: targetId, type:'fine', title:'罚款',
+    amount: round2(amount), tip:0, discount:10, rate:0,
+    gross: r.gross, commission:0, net: r.net,
+    note: reason, image: UI.fineImage || null, settled:false, created_at: Date.now()
+  };
+  const { error } = await sb.from('orders').insert(row);
+  if(error){ toast('下发失败：' + error.message); return; }
+  DB.orders.push({...row, createdAt: row.created_at});
+  toast('罚款单已下发 ⚠️');
+  UI.fineImage = null; renderFinePage($('#content'));
+}
+
+function setFlowSub(s){ UI.flowSub = s; renderFlow($('#content')); }
+function setFlowPeriod(p){ UI.flowPeriod = p; renderFlow($('#content')); }
+function setFlowDate(v){ if(!v) return; UI.flowDate = v; renderFlow($('#content')); }
+function setFlowUser(v){ UI.flowUser = v; renderFlow($('#content')); }
+function setSalaryMonth(v){ if(!v) return; UI.salaryMonth = v; renderFlow($('#content')); }
+
+function getRange(period, dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  if(period === 'day'){ const from = new Date(d); const to = new Date(d); to.setDate(to.getDate()+1); return [from, to]; }
+  if(period === 'week'){ const from = weekStart(d); const to = new Date(from); to.setDate(to.getDate()+7); return [from, to]; }
+  const from = new Date(d.getFullYear(), d.getMonth(), 1);
+  const to = new Date(d.getFullYear(), d.getMonth()+1, 1);
+  return [from, to];
+}
+
+function renderFlow(el){
+  const isMgr = isManagerRole(ME.role);
+  const sub = UI.flowSub || 'flow';
+  el.innerHTML = `
+    <div class="seg" style="margin-bottom:14px">
+      <button class="${sub==='flow'?'active':''}" onclick="setFlowSub('flow')">📊 流水统计</button>
+      <button class="${sub==='salary'?'active':''}" onclick="setFlowSub('salary')">💰 工资表</button>
+    </div>
+    <div id="flowBody"></div>`;
+  const body = $('#flowBody');
+  if(sub === 'flow'){
+    if(isMgr) renderFlowBodyManager(body);
+    else renderFlowBodyPlayer(body);
+  } else {
+    renderSalaryBody(body);
+  }
+}
+
+function renderFlowBodyManager(el){
+  const period = UI.flowPeriod;
+  const [from, to] = getRange(period, UI.flowDate);
+  const fromTs = from.getTime(), toTs = to.getTime();
+  let list = DB.orders.filter(o => o.club_id === ME.club_id && o.createdAt >= fromTs && o.createdAt < toTs);
+  if(UI.flowUser !== 'all') list = list.filter(o => o.user_id === UI.flowUser);
+  const s = calcStats(list);
+  const members = DB.users.filter(x => x.club_id === ME.club_id);
+  let rangeLabel = '';
+  if(period === 'day') rangeLabel = UI.flowDate;
+  else if(period === 'week'){ const e = new Date(toTs - 86400000); rangeLabel = `${fmtDate(fromTs)} ~ ${fmtDate(e.getTime())}`; }
+  else rangeLabel = UI.flowDate.slice(0,7);
+
+  const typeRows = ALL_TYPES.map(k => {
+    const bt = s.byType[k];
+    if(!bt || !bt.count) return '';
+    const ti = ORDER_TYPES[k];
+    return `<tr><td><span style="color:${ti.color}">${ti.icon} ${ti.name}</span></td><td class="num">${bt.count}</td><td class="num">${money(k==='fine' ? bt.fine : bt.gross)}</td><td class="num">${k==='fine' ? '—' : money(bt.commission)}</td><td class="num ${bt.net<0?'warn':'ok'}">${money(bt.net)}</td></tr>`;
+  }).join('');
+
+  const userRows = Object.keys(s.byUser).map(uidKey => {
+    const bu = s.byUser[uidKey];
+    const usr = DB.users.find(u => u.id === uidKey);
+    const nm = usr ? (usr.nick || usr.username) : '未知';
+    return `<tr><td>${esc(nm)}</td><td class="num">${bu.count}</td><td class="num">${money(bu.gross)}</td><td class="num">${money(bu.commission)}</td><td class="num gold">${bu.fine ? '-'+money(bu.fine) : '—'}</td><td class="num ok">${money(bu.net)}</td></tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="seg" style="margin-bottom:12px">
+      <button class="${period==='day'?'active':''}" onclick="setFlowPeriod('day')">日报</button>
+      <button class="${period==='week'?'active':''}" onclick="setFlowPeriod('week')">周报</button>
+      <button class="${period==='month'?'active':''}" onclick="setFlowPeriod('month')">月报</button>
+    </div>
+    <div class="filters">
+      <input type="${period==='month'?'month':'date'}" value="${period==='month' ? UI.flowDate.slice(0,7) : UI.flowDate}" onchange="setFlowDate(this.value + '${period==='month'?'-01':''}')">
+      <select onchange="setFlowUser(this.value)"><option value="all" ${UI.flowUser==='all'?'selected':''}>全部成员</option>${members.map(m => `<option value="${m.id}" ${UI.flowUser===m.id?'selected':''}>${esc(m.nick||m.username)}</option>`).join('')}</select>
+    </div>
+    <div class="hint" style="margin:-4px 0 12px;text-align:center">📅 ${rangeLabel}</div>
+    <div class="stat-grid">
+      <div class="stat"><div class="k">单数</div><div class="v">${s.count}</div></div>
+      <div class="stat"><div class="k">总流水</div><div class="v pri">${money(s.gross)}</div></div>
+      <div class="stat"><div class="k">总抽成</div><div class="v warn">${money(s.commission)}</div></div>
+      <div class="stat"><div class="k">罚款</div><div class="v gold">${s.fine?'-'+money(s.fine):'¥0.00'}</div></div>
+    </div>
+    <div class="stat" style="margin-bottom:14px"><div class="k">实发工资合计</div><div class="v ok" style="font-size:26px">${money(s.net)}</div></div>
+    <div class="card"><div class="card-title">📦 按类型统计</div>${typeRows ? `<div style="overflow-x:auto"><table><thead><tr><th>类型</th><th class="num">单数</th><th class="num">金额</th><th class="num">抽成</th><th class="num">实得</th></tr></thead><tbody>${typeRows}</tbody></table></div>` : '<div class="empty">该时段暂无数据</div>'}</div>
+    ${userRows ? `<div class="card"><div class="card-title">👥 按成员统计</div><div style="overflow-x:auto"><table><thead><tr><th>成员</th><th class="num">单数</th><th class="num">流水</th><th class="num">抽成</th><th class="num">罚款</th><th class="num">实得</th></tr></thead><tbody>${userRows}</tbody></table></div></div>` : ''}`;
+}
+
+function renderFlowBodyPlayer(el){
+  const period = UI.flowPeriod;
+  const [from, to] = getRange(period, UI.flowDate);
+  const fromTs = from.getTime(), toTs = to.getTime();
+  const myOrders = DB.orders.filter(o => o.user_id === ME.id && o.club_id === ME.club_id && o.createdAt >= fromTs && o.createdAt < toTs);
+  let rangeLabel = '';
+  if(period === 'day') rangeLabel = UI.flowDate;
+  else if(period === 'week'){ const e = new Date(toTs - 86400000); rangeLabel = `${fmtDate(fromTs)} ~ ${fmtDate(e.getTime())}`; }
+  else rangeLabel = UI.flowDate.slice(0,7);
+
+  const dayMap = {};
+  myOrders.forEach(o => { const d = fmtDate(o.createdAt); if(!dayMap[d]) dayMap[d] = []; dayMap[d].push(o); });
+  const days = Object.keys(dayMap).sort((a,b) => b.localeCompare(a));
+
+  let dayList = '';
+  if(!days.length){ dayList = '<div class="empty">该时段暂无数据</div>'; }
+  else {
+    dayList = days.map(d => {
+      const orders = dayMap[d];
+      const ds = calcStats(orders);
+      const typeLines = ALL_TYPES.map(k => {
+        const bt = ds.byType[k];
+        if(!bt || !bt.count) return '';
+        const ti = ORDER_TYPES[k];
+        return `<div class="day-type-row"><span class="dtr-name" style="color:${ti.color}">${ti.icon} ${ti.name}</span><span class="dtr-count">${bt.count} 单</span><span class="dtr-net ok">${money(bt.net)}</span></div>`;
+      }).filter(Boolean).join('');
+      const settledLine = ds.settled > 0 ? `<div class="hint" style="margin:4px 0 0">其中已结 ${money(ds.settled)}</div>` : '';
+      return `<div class="day-card"><div class="day-head"><span>📅 ${d}</span><span class="mut small">${ds.count} 单 · 实得 <b class="ok">${money(ds.net)}</b></span></div><div class="day-body">${typeLines || '<div class="mut small" style="padding:6px 0">无</div>'}${settledLine}</div></div>`;
+    }).join('');
+  }
+
+  const total = calcStats(myOrders);
+  const settledAmt = total.settled;
+  const netAmt = total.net;
+  const unsettledAmt = round2(netAmt - settledAmt);
+
+  el.innerHTML = `
+    <div class="seg" style="margin-bottom:12px">
+      <button class="${period==='day'?'active':''}" onclick="setFlowPeriod('day')">日报</button>
+      <button class="${period==='week'?'active':''}" onclick="setFlowPeriod('week')">周报</button>
+      <button class="${period==='month'?'active':''}" onclick="setFlowPeriod('month')">月报</button>
+    </div>
+    <div class="filters"><input type="${period==='month'?'month':'date'}" value="${period==='month' ? UI.flowDate.slice(0,7) : UI.flowDate}" onchange="setFlowDate(this.value + '${period==='month'?'-01':''}')"></div>
+    <div class="hint" style="margin:-4px 0 12px;text-align:center">📅 ${rangeLabel}</div>
+    <div class="stat-grid">
+      <div class="stat"><div class="k">单数</div><div class="v">${total.count}</div></div>
+      <div class="stat"><div class="k">已结工资</div><div class="v gold">${money(settledAmt)}</div></div>
+      <div class="stat"><div class="k">应发工资</div><div class="v ok">${money(unsettledAmt)}</div></div>
+      <div class="stat"><div class="k">总赚工资</div><div class="v pri">${money(netAmt)}</div></div>
+    </div>
+    <div class="card"><div class="card-title">📅 按日统计</div>${dayList}</div>`;
+}
+
+function renderSalaryBody(el){
+  const isMgr = isManagerRole(ME.role);
+  const month = UI.salaryMonth;
+  const [from, to] = getRange('month', month + '-01');
+  const fromTs = from.getTime(), toTs = to.getTime();
+  const list = DB.orders.filter(o => o.club_id === ME.club_id && o.createdAt >= fromTs && o.createdAt < toTs);
+  const s = calcStats(list);
+  const members = DB.users.filter(x => x.club_id === ME.club_id);
+  let rows = members.map(m => {
+    const bu = s.byUser[m.id] || { count:0, gross:0, commission:0, net:0, fine:0, settled:0 };
+    return { m, bu };
+  }).filter(r => r.bu.count > 0 || r.m.role === 'player');
+  if(!isMgr) rows = rows.filter(r => r.m.id === ME.id);
+
+  let totalNet = 0, totalGross = 0, totalFine = 0, totalSettled = 0;
+  rows.forEach(r => { totalNet += r.bu.net; totalGross += r.bu.gross; totalFine += r.bu.fine; totalSettled += r.bu.settled; });
+  const scopeLabel = isMgr ? '全员工资表' : '我的工资';
+  const headRow = isMgr
+    ? `<tr><th>成员</th><th class="num">单数</th><th class="num">流水</th><th class="num">罚款</th><th class="num">已结</th><th class="num">应发</th></tr>`
+    : `<tr><th>成员</th><th class="num">单数</th><th class="num">罚款</th><th class="num">已结</th><th class="num">应发</th></tr>`;
+  const bodyRows = rows.map(({m, bu}) => {
+    const cells = [];
+    cells.push(`<td>${esc(m.nick || m.username)}${m.role==='admin'?' <span class="mut small">管理</span>':m.role==='staff'?' <span class="mut small">员工</span>':''}</td>`);
+    cells.push(`<td class="num">${bu.count}</td>`);
+    if(isMgr) cells.push(`<td class="num">${money(bu.gross)}</td>`);
+    cells.push(`<td class="num gold">${bu.fine ? '-'+money(bu.fine) : '—'}</td>`);
+    cells.push(`<td class="num" style="color:#fbbf24">${bu.settled ? money(bu.settled) : '—'}</td>`);
+    cells.push(`<td class="num ok"><b>${money(bu.net)}</b></td>`);
+    return `<tr>${cells.join('')}</tr>`;
+  }).join('');
+  const footRow = isMgr ? `<tr style="border-top:2px solid var(--border)"><td><b>合计</b></td><td class="num"><b>${s.count}</b></td><td class="num"><b>${money(totalGross)}</b></td><td class="num gold"><b>${totalFine?'-'+money(totalFine):'—'}</b></td><td class="num" style="color:#fbbf24"><b>${totalSettled ? money(totalSettled) : '—'}</b></td><td class="num ok"><b>${money(totalNet)}</b></td></tr>` : '';
+  const statCards = isMgr
+    ? `<div class="stat"><div class="k">流水合计</div><div class="v pri">${money(totalGross)}</div></div><div class="stat"><div class="k">罚款合计</div><div class="v gold">${totalFine?'-'+money(totalFine):'¥0.00'}</div></div><div class="stat"><div class="k">应发合计</div><div class="v ok">${money(totalNet)}</div></div>`
+    : `<div class="stat"><div class="k">单数</div><div class="v">${s.count}</div></div><div class="stat"><div class="k">应发工资</div><div class="v ok">${money(totalNet)}</div></div>`;
+
+  el.innerHTML = `
+    <div class="filters"><input type="month" value="${month}" onchange="setSalaryMonth(this.value)"></div>
+    <div class="stat-grid">${statCards}</div>
+    <div class="card"><div class="card-title">💰 ${month} ${scopeLabel}</div>
+      ${rows.length ? `<div style="overflow-x:auto"><table><thead>${headRow}</thead><tbody>${bodyRows}${footRow}</tbody></table></div>` : '<div class="empty">该月份暂无工资数据</div>'}
+    </div>`;
+}
+
+function setRankPeriod(p){ UI.rankPeriod = p; renderRanking($('#content')); }
+
+function renderRanking(el){
+  const period = UI.rankPeriod || 'week';
+  const now = new Date();
+  let list = DB.orders.filter(o => o.club_id === ME.club_id && o.type !== 'fine');
+  if(period === 'day'){ const d = todayStr(); list = list.filter(o => fmtDate(o.createdAt) === d); }
+  else if(period === 'week'){ const ws = weekStart(now).getTime(); list = list.filter(o => o.createdAt >= ws); }
+  else if(period === 'month'){ const m = monthStr(); list = list.filter(o => fmtDate(o.createdAt).slice(0,7) === m); }
+
+  const agg = {};
+  list.forEach(o => {
+    if(!agg[o.user_id]) agg[o.user_id] = { gross:0, net:0, count:0 };
+    agg[o.user_id].gross += Number(o.gross);
+    agg[o.user_id].net += Number(o.net);
+    agg[o.user_id].count++;
+  });
+
+  const members = DB.users.filter(x => x.club_id === ME.club_id);
+  const rank = members.map(m => {
+    const a = agg[m.id] || { gross:0, net:0, count:0 };
+    return { user:m, gross:a.gross, net:a.net, count:a.count };
+  }).sort((a,b) => b.gross - a.gross);
+
+  const myRankIdx = rank.findIndex(r => r.user.id === ME.id);
+  const medal = ['🥇','🥈','🥉'];
+  const podiumBg = ['linear-gradient(135deg,#fbbf24,#f59e0b)','linear-gradient(135deg,#cbd5e1,#94a3b8)','linear-gradient(135deg,#cd7f32,#a05a2c)'];
+  const top3 = rank.slice(0,3);
+  let podiumHtml = '<div class="podium">';
+  podiumHtml += top3[1] ? podiumItem(top3[1], 2, medal[1], podiumBg[1]) : '<div></div>';
+  podiumHtml += top3[0] ? podiumItem(top3[0], 1, medal[0], podiumBg[0]) : '<div></div>';
+  podiumHtml += top3[2] ? podiumItem(top3[2], 3, medal[2], podiumBg[2]) : '<div></div>';
+  podiumHtml += '</div>';
+
+  const listHtml = rank.map((r, i) => {
+    const isMe = r.user.id === ME.id;
+    const nm = r.user.nick || r.user.username;
+    const av = nm.slice(0,1).toUpperCase();
+    return `<div class="rank-row ${isMe?'me':''}"><div class="rank-no">${i < 3 ? medal[i] : (i+1)}</div><div class="avatar" style="width:28px;height:28px;font-size:12px">${esc(av)}</div><div class="rank-name">${esc(nm)}${isMe?' <span class="badge">我</span>':''}</div><div class="rank-right"><div class="rank-amt">${money(r.gross)}</div><div class="rank-sub">${r.count} 单</div></div></div>`;
+  }).join('');
+
+  const periodLabel = period==='day' ? '今日' : period==='week' ? '本周' : '本月';
+
+  el.innerHTML = `
+    <div class="seg" style="margin-bottom:14px">
+      <button class="${period==='day'?'active':''}" onclick="setRankPeriod('day')">日榜</button>
+      <button class="${period==='week'?'active':''}" onclick="setRankPeriod('week')">周榜</button>
+      <button class="${period==='month'?'active':''}" onclick="setRankPeriod('month')">月榜</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🏆 流水榜单 <span class="badge">${periodLabel}</span></div>
+      ${rank.length ? podiumHtml : ''}
+      ${rank.length ? `<div class="mini-list" style="margin-top:6px">${listHtml}</div>` : '<div class="empty">暂无上榜数据</div>'}
+    </div>
+    <div class="card">
+      <div class="card-title">📌 我的排名</div>
+      ${myRankIdx >= 0 ? `<div class="rank-row me"><div class="rank-no">${myRankIdx+1}</div><div class="avatar" style="width:28px;height:28px;font-size:12px">${esc((ME.nick||ME.username).slice(0,1).toUpperCase())}</div><div class="rank-name">${esc(ME.nick||ME.username)}</div><div class="rank-right"><div class="rank-amt">${money(rank[myRankIdx].gross)}</div><div class="rank-sub">${rank[myRankIdx].count} 单</div></div></div>` : '<div class="empty">本期还未上榜</div>'}
+    </div>`;
+}
+
+function podiumItem(r, pos, medal, bg){
+  const nm = r.user.nick || r.user.username;
+  const av = nm.slice(0,1).toUpperCase();
+  return `<div class="podium-item p${pos}"><div class="podium-rank">${medal}</div><div class="podium-avatar" style="background:${bg}">${esc(av)}</div><div class="podium-name">${esc(nm)}</div><div class="podium-amt">${money(r.gross)}</div><div class="podium-sub">${r.count} 单</div></div>`;
+}
+
+function renderSettings(el){
+  const isMgr = isManagerRole(ME.role);
+  const isAdmin = ME.role === 'admin';
+  const club = DB.clubs.find(c => c.id === ME.club_id);
+  const members = DB.users.filter(x => x.club_id === ME.club_id);
+  let html = '';
+
+  if(isMgr && club){
+    html += `
+      <div class="card">
+        <div class="card-title">🏠 俱乐部信息</div>
+        <div class="field"><label>俱乐部名称</label><input type="text" id="setClubName" value="${esc(club.name)}"></div>
+        <button class="btn block sm" onclick="saveClubName()" style="margin-bottom:16px">保存名称</button>
+        <label style="font-size:12.5px;color:var(--mut);display:block;margin-bottom:6px">绑定码</label>
+        <div class="code-box"><span class="code-val">${club.code}</span><button class="btn sm" onclick="copyCode()">复制</button></div>
+        <button class="btn ghost sm" style="margin-top:10px;width:100%" onclick="regenCode()">重新生成绑定码</button>
+        <div class="hint" style="text-align:center">陪玩与员工注册时输入此码即可加入俱乐部</div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚙️ 抽成设置 <span class="mut small">（百分比）</span></div>
+        ${ALL_TYPES.map(k => {
+          const ti = ORDER_TYPES[k];
+          const val = k === 'fine' ? 0 : getRate(k);
+          return `<div class="field" style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span style="flex:1;font-size:13.5px;color:var(--text);opacity:.9">${ti.icon} ${ti.name}</span><div style="width:110px;position:relative"><input type="number" id="comm_${k}" value="${val}" min="0" max="100" step="1" ${k==='fine'?'disabled':''} style="padding-right:34px;text-align:right"><span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:13px">%</span></div></div>`;
+        }).join('')}
+        <div class="hint" style="margin-bottom:14px">⚠️ 罚款单固定 0% 抽成</div>
+        <button class="btn primary block" onclick="saveCommission()">保存抽成设置</button>
+      </div>
+      <div class="card">
+        <div class="card-title">🎯 陪玩项目 <span class="mut small">${(club.projects||[]).length} 个</span></div>
+        <div class="mini-list" style="margin-bottom:12px">
+          ${(club.projects||[]).length ? (club.projects||[]).map(p => `<div class="mini-item"><span class="mi-name">${esc(p.name)}</span><span class="mi-amt">¥${p.price}</span><button class="btn danger sm" onclick="delProject('${p.id}')">删</button></div>`).join('') : '<div class="empty">还没有项目</div>'}
+        </div>
+        <div class="row-flex"><input type="text" id="newProjName" placeholder="项目名称" style="flex:2"><input type="number" id="newProjPrice" placeholder="价格" step="0.01" min="0" style="flex:1"><button class="btn primary sm" onclick="addProject()">添加</button></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎁 礼物管理 <span class="mut small">${(club.gifts||[]).length} 个</span></div>
+        <div class="mini-list" style="margin-bottom:12px">
+          ${(club.gifts||[]).length ? (club.gifts||[]).map(g => `<div class="mini-item"><span class="mi-name">${esc(g.name)}</span><span class="mi-amt">¥${g.price}</span><button class="btn danger sm" onclick="delGift('${g.id}')">删</button></div>`).join('') : '<div class="empty">还没有礼物</div>'}
+        </div>
+        <div class="row-flex"><input type="text" id="newGiftName" placeholder="礼物名称" style="flex:2"><input type="number" id="newGiftPrice" placeholder="价格" step="0.01" min="0" style="flex:1"><button class="btn primary sm" onclick="addGift()">添加</button></div>
+      </div>
+      <div class="card">
+        <div class="card-title">👥 俱乐部成员 <span class="mut small">${members.length} 人</span></div>
+        ${members.map(m => {
+          const canDel = isAdmin && m.id !== ME.id;
+          return `<div class="member"><div class="avatar">${esc((m.nick||m.username).slice(0,1).toUpperCase())}</div><div style="flex:1"><div>${esc(m.nick || m.username)} ${m.role==='admin'?'<span class="badge">管理</span>':m.role==='staff'?'<span class="badge gold">员工</span>':''}</div><div class="mut small">@${esc(m.username)}</div></div>${canDel ? `<button class="btn danger sm" onclick="removeMember('${m.id}')">移除</button>` : ''}</div>`;
+        }).join('')}
+      </div>`;
+  } else if(club){
+    html += `<div class="card"><div class="card-title">🏠 我的俱乐部</div><div class="member" style="border:0;padding:0"><div class="avatar">${esc(club.name.slice(0,1))}</div><div style="flex:1"><div>${esc(club.name)}</div><div class="mut small">绑定码：${club.code}</div></div></div></div>`;
+  }
+
+  html += `
+    <div class="card">
+      <div class="card-title">🎨 主题配色</div>
+      <div class="theme-grid">
+        ${THEMES.map(t => `<div class="theme-swatch ${(ME.theme||'black')===t.id?'active':''}" onclick="saveTheme('${t.id}')"><div class="theme-dot" style="background:${t.accent}"></div><div class="theme-name">${t.name}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">👤 账号资料</div>
+      <div class="field"><label>用户名（登录用，不可修改）</label><input type="text" value="${esc(ME.username)}" disabled></div>
+      <div class="field"><label>昵称（显示名称）</label><input type="text" id="setNick" value="${esc(ME.nick||'')}"></div>
+      <button class="btn primary block" onclick="saveProfile()">保存资料</button>
+    </div>
+    <div class="card">
+      <div class="card-title">🔒 修改密码</div>
+      <div class="field"><label>新密码</label><input type="password" id="setNewPass" placeholder="至少 6 位"></div>
+      <button class="btn block" onclick="changePassword()">修改密码</button>
+    </div>
+    <div class="card" style="text-align:center">
+      <button class="btn danger block" onclick="logout()">退出登录</button>
+    </div>
+    <div style="text-align:center;color:var(--mut);opacity:.6;font-size:12px;padding:10px 0 20px">
+      陪玩俱乐部报备系统 · 云端数据同步
+    </div>`;
+
+  el.innerHTML = html;
+}
+
+async function saveTheme(id){
+  const { error } = await sb.from('profiles').update({ theme: id }).eq('id', ME.id);
+  if(error){ toast('保存失败'); return; }
+  ME.theme = id;
+  const i = DB.users.findIndex(u => u.id === ME.id);
+  if(i >= 0) DB.users[i].theme = id;
+  applyTheme(id);
+  toast('主题已切换');
+  renderApp();
+}
+
+async function saveClubName(){
+  if(!isManagerRole(ME.role)) return;
+  const v = $('#setClubName').value.trim();
+  if(!v) return toast('名称不能为空');
+  const { error } = await sb.from('clubs').update({ name: v }).eq('id', ME.club_id);
+  if(error){ toast('保存失败'); return; }
+  const i = DB.clubs.findIndex(c => c.id === ME.club_id);
+  if(i >= 0) DB.clubs[i].name = v;
+  toast('已保存'); renderApp();
+}
+
+function copyCode(){
+  const club = DB.clubs.find(c => c.id === ME.club_id);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(club.code).then(() => toast('绑定码已复制'), () => toast('绑定码：' + club.code));
+  }else{ toast('绑定码：' + club.code); }
+}
+
+async function regenCode(){
+  if(!isManagerRole(ME.role)) return;
+  if(!confirm('重新生成后，旧绑定码立即失效，确定继续吗？')) return;
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code;
+  do{ code = ''; for(let i=0;i<6;i++) code += chars[Math.floor(Math.random()*chars.length)]; }
+  while(DB.clubs.some(c => c.code === code));
+  const { error } = await sb.from('clubs').update({ code }).eq('id', ME.club_id);
+  if(error){ toast('生成失败'); return; }
+  const i = DB.clubs.findIndex(c => c.id === ME.club_id);
+  if(i >= 0) DB.clubs[i].code = code;
+  toast('新绑定码：' + code);
+  renderSettings($('#content'));
+}
+
+async function saveCommission(){
+  if(!isManagerRole(ME.role)) return;
+  const c = {};
+  for(const k of ALL_TYPES){
+    if(k === 'fine'){ c[k] = 0; continue; }
+    const inp = document.getElementById('comm_' + k);
+    let v = parseFloat(inp ? inp.value : 30);
+    if(isNaN(v) || v < 0) v = 0;
+    if(v > 100) v = 100;
+    c[k] = round2(v);
+  }
+  const { error } = await sb.from('clubs').update({ commission: c }).eq('id', ME.club_id);
+  if(error){ toast('保存失败'); return; }
+  const i = DB.clubs.findIndex(x => x.id === ME.club_id);
+  if(i >= 0) DB.clubs[i].commission = c;
+  toast('抽成设置已保存 ✅');
+  renderSettings($('#content'));
+}
+
+async function addProject(){
+  if(!isManagerRole(ME.role)) return;
+  const name = $('#newProjName').value.trim();
+  const price = parseFloat($('#newProjPrice').value);
+  if(!name) return toast('请输入项目名称');
+  if(!price || price <= 0) return toast('请输入有效价格');
+  const club = DB.clubs.find(c => c.id === ME.club_id);
+  const projects = [...(club.projects||[]), { id: uid(), name, price: round2(price) }];
+  const { error } = await sb.from('clubs').update({ projects }).eq('id', ME.club_id);
+  if(error){ toast('添加失败'); return; }
+  club.projects = projects;
+  toast('项目已添加'); renderSettings($('#content'));
+}
+async function delProject(id){
+  if(!isManagerRole(ME.role)) return;
+  if(!confirm('确定删除该项目吗？')) return;
+  const club = DB.clubs.find(c => c.id === ME.club_id);
+  const projects = (club.projects||[]).filter(p => p.id !== id);
+  const { error } = await sb.from('clubs').update({ projects }).eq('id', ME.club_id);
+  if(error){ toast('删除失败'); return; }
+  club.projects = projects;
+  toast('已删除'); renderSettings($('#content'));
+}
+async function addGift(){
+  if(!isManagerRole(ME.role)) return;
+  const name = $('#newGiftName').value.trim();
+  const price = parseFloat($('#newGiftPrice').value);
+  if(!name) return toast('请输入礼物名称');
+  if(!price || price <= 0) return toast('请输入有效价格');
+  const club = DB.clubs.find(c => c.id === ME.club_id);
+  const gifts = [...(club.gifts||[]), { id: uid(), name, price: round2(price) }];
+  const { error } = await sb.from('clubs').update({ gifts }).eq('id', ME.club_id);
+  if(error){ toast('添加失败'); return; }
+  club.gifts = gifts;
+  toast('礼物已添加'); renderSettings($('#content'));
+}
+async function delGift(id){
+  if(!isManagerRole(ME.role)) return;
+  if(!confirm('确定删除该礼物吗？')) return;
+  const club = DB.clubs.find(c => c.id === ME.club_id);
+  const gifts = (club.gifts||[]).filter(g => g.id !== id);
+  const { error } = await sb.from('clubs').update({ gifts }).eq('id', ME.club_id);
+  if(error){ toast('删除失败'); return; }
+  club.gifts = gifts;
+  toast('已删除'); renderSettings($('#content'));
+}
+
+async function removeMember(memberId){
+  if(ME.role !== 'admin') return toast('只有管理员可以移除成员');
+  if(memberId === ME.id) return toast('不能移除自己');
+  const target = DB.users.find(u => u.id === memberId);
+  if(!target || target.club_id !== ME.club_id) return toast('该成员不在你的俱乐部');
+  if(!confirm(`确定要移除${roleLabel(target.role)}「${target.nick || target.username}」吗？\n\n该成员将无法再登录，但历史订单会保留。`)) return;
+  const { error } = await sb.from('profiles').delete().eq('id', memberId);
+  if(error){ toast('移除失败：' + error.message); return; }
+  DB.users = DB.users.filter(u => u.id !== memberId);
+  toast('已移除');
+  renderApp();
+}
+
+async function saveProfile(){
+  const nick = $('#setNick').value.trim();
+  const { error } = await sb.from('profiles').update({ nick: nick || ME.username }).eq('id', ME.id);
+  if(error){ toast('保存失败'); return; }
+  ME.nick = nick || ME.username;
+  const i = DB.users.findIndex(u => u.id === ME.id);
+  if(i >= 0) DB.users[i].nick = ME.nick;
+  toast('资料已保存'); renderApp();
+}
+
+async function changePassword(){
+  const newP = $('#setNewPass').value;
+  if(newP.length < 6) return toast('新密码至少 6 位');
+  const { error } = await sb.auth.updateUser({ password: newP });
+  if(error){ toast('修改失败：' + error.message); return; }
+  $('#setNewPass').value = '';
+  toast('密码已修改');
+}
+
+boot();
+</script>
+</body>
+</html>
