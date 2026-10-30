@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>俱乐部管理系统</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;background:#d9d3c8;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:14px;color:#4a423a;}
+@media(max-width:520px){body{padding:0;}}
+.phone{width:100%;max-width:400px;height:min(820px,calc(100dvh - 28px));min-height:560px;position:relative;overflow:hidden;border-radius:36px;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.25);background:var(--bg);transition:background .3s;}
+@media(max-width:520px){.phone{max-width:100%;height:100dvh;border-radius:0;box-shadow:none;}}
+:root{--bg:#f5f2eb;--card:rgba(255,255,255,.66);--card-border:rgba(255,255,255,.92);--text:#4a423a;--text-sub:#8b8178;--text-mute:#b3aaa1;--primary:#c08c65;--primary-soft:rgba(192,140,101,.13);--line:rgba(0,0,0,.06);--shadow:0 10px 30px rgba(180,160,140,.14);--radius:26px;--input-bg:rgba(255,255,255,.78);}
+.phone.theme-y2k{--bg:#ffe8f0;--card:#fff;--card-border:#000;--text:#111;--text-sub:#555;--text-mute:#888;--primary:#ff5c8a;--primary-soft:rgba(255,92,138,.16);--line:rgba(0,0,0,.12);--shadow:5px 5px 0 #000;--radius:14px;--input-bg:#fff;background-color:#ffe8f0;background-image:linear-gradient(rgba(255,92,138,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(255,92,138,.16) 1px,transparent 1px);background-size:24px 24px;}
+.phone.theme-pixel{--bg:#2e2018;--card:#f7e7c8;--card-border:#5c3a21;--text:#2d1f14;--text-sub:#6b4f36;--text-mute:#a08464;--primary:#8f563b;--primary-soft:#ead7b3;--line:#d8c3a0;--shadow:5px 5px 0 #4a2f1b;--radius:0px;--input-bg:#fffaf0;background-color:#2e2018;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 2px,transparent 2px 4px),repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 2px,transparent 2px 4px);border-radius:10px;font-family:"Courier New",Courier,monospace;}
+.orbs{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+.orbs i{position:absolute;border-radius:50%;filter:blur(58px);opacity:.75;}
+.orbs i:nth-child(1){width:280px;height:280px;background:#f3d9c4;top:-70px;left:-70px;}
+.orbs i:nth-child(2){width:250px;height:250px;background:#e7dfd2;bottom:90px;right:-90px;}
+.orbs i:nth-child(3){width:200px;height:200px;background:#f8e9d9;bottom:-60px;left:20px;}
+.phone.theme-y2k .orbs,.phone.theme-pixel .orbs{display:none;}
+.screen{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;min-height:0;}
+.topbar{display:flex;align-items:center;height:56px;padding:0 12px;flex-shrink:0;gap:6px;}
+.tb-back{width:34px;height:34px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--text);font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding-bottom:4px;}
+.tb-back.ghost{visibility:hidden;}
+.tb-title{flex:1;text-align:center;font-size:15.5px;font-weight:600;letter-spacing:.5px;}
+.tb-right{min-width:34px;display:flex;justify-content:flex-end;}
+.tb-btn{border:none;background:var(--primary);color:#fff;font-size:11.5px;padding:7px 11px;border-radius:12px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.pending-topbar{display:flex;gap:6px;padding:0 12px;height:56px;align-items:center;flex-shrink:0;}
+.pt-tab{flex:1;border:1px solid var(--card-border);background:var(--card);color:var(--text-sub);padding:8px 0;border-radius:12px;font-size:12px;cursor:pointer;font-family:inherit;}
+.pt-tab.on{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:700;}
+.app{flex:1;overflow-y:auto;overflow-x:hidden;padding:2px 13px 24px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.app::-webkit-scrollbar{display:none;}
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:15px;margin-bottom:13px;box-shadow:var(--shadow);}
+.card-title{font-size:13.5px;font-weight:600;margin-bottom:11px;letter-spacing:.4px;}
+.sec-title{font-size:12.5px;color:var(--text-sub);font-weight:600;margin:15px 4px 9px;letter-spacing:.4px;}
+.tabbar{display:flex;height:62px;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom);background:var(--card);border-top:1px solid var(--card-border);}
+.tab{flex:1;border:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--text-mute);font-family:inherit;}
+.tab.on{color:var(--primary);}
+.tab-ico{font-size:17px;line-height:1;}
+.tab-txt{font-size:10px;letter-spacing:.4px;}
+.tab.on .tab-txt{font-weight:700;}
+.login{min-height:100%;display:flex;flex-direction:column;position:relative;padding:38px 4px 78px;}
+.login-hero{text-align:center;margin-bottom:22px;}
+.login-logo{width:76px;height:76px;margin:0 auto 13px;border-radius:25px;background:linear-gradient(140deg,#f0d3ba,#e3c1a5);display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 14px 30px rgba(192,140,101,.28);}
+.login-hero h1{margin:0 0 7px;font-size:21px;font-weight:600;letter-spacing:2px;}
+.login-hero p{margin:0;font-size:11px;color:var(--text-sub);letter-spacing:1.4px;}
+.login-register{text-align:center;font-size:12px;color:var(--text-mute);margin-top:12px;cursor:pointer;}
+.login-register b{color:var(--primary);}
+.chip{border:1px solid var(--card-border);background:var(--card);color:var(--text-sub);padding:7px 12px;border-radius:20px;font-size:11px;cursor:pointer;font-family:inherit;}
+.chip.on{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;}
+.lock{position:absolute;right:0;bottom:18px;width:42px;height:42px;border-radius:50%;border:1px solid var(--card-border);background:rgba(255,255,255,.45);font-size:16px;opacity:.55;cursor:pointer;}
+.input{width:100%;border:1px solid transparent;background:var(--input-bg);border-radius:13px;padding:11px 13px;font-size:13.5px;color:var(--text);font-family:inherit;outline:none;margin-bottom:9px;}
+.input:focus{border-color:var(--primary);}
+select.input{appearance:none;-webkit-appearance:none;}
+textarea.input{min-height:64px;resize:none;line-height:1.6;}
+.field{margin-bottom:9px;}
+.field-label{font-size:10.5px;color:var(--text-mute);margin:0 4px 5px;letter-spacing:.5px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.hint{font-size:10.5px;color:var(--text-mute);text-align:center;margin-top:9px;line-height:1.6;}
+.btn{border:none;border-radius:15px;padding:12px 16px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.4px;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-ghost{background:var(--primary-soft);color:var(--primary);}
+.btn-block{width:100%;display:block;}
+.btn-sm{padding:8px 13px;font-size:11.5px;border-radius:11px;}
+.seg{display:flex;background:var(--card);border-radius:15px;padding:3px;margin-bottom:12px;border:1px solid var(--card-border);}
+.seg-item{flex:1;text-align:center;padding:8px 0;font-size:12px;color:var(--text-sub);border-radius:11px;cursor:pointer;font-weight:500;}
+.seg-item.on{background:var(--primary);color:#fff;font-weight:600;}
+.hscroll{display:flex;gap:7px;overflow-x:auto;padding:2px 0 11px;scrollbar-width:none;}
+.hscroll::-webkit-scrollbar{display:none;}
+.hchip{flex-shrink:0;border:1px solid var(--card-border);background:var(--card);color:var(--text-sub);padding:7px 14px;border-radius:17px;font-size:11.5px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.hchip.on{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;}
+.profile{display:flex;align-items:center;gap:13px;}
+.avatar{width:54px;height:54px;border-radius:19px;display:flex;align-items:center;justify-content:center;font-size:25px;background:linear-gradient(140deg,#f6e2cf,#ecd0b6);flex-shrink:0;}
+.avatar.sm{width:40px;height:40px;font-size:19px;border-radius:13px;}
+.profile-main{flex:1;min-width:0;}
+.profile-name{font-size:15.5px;font-weight:600;margin-bottom:4px;}
+.profile-meta{font-size:11px;color:var(--text-sub);}
+.badge{font-size:9.5px;padding:5px 9px;border-radius:20px;background:var(--primary-soft);color:var(--primary);font-weight:700;white-space:nowrap;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.stat{background:var(--primary-soft);border-radius:15px;padding:11px;text-align:center;}
+.stat-num{font-size:16.5px;font-weight:700;color:var(--primary);margin-bottom:3px;}
+.stat-lbl{font-size:10px;color:var(--text-sub);letter-spacing:.3px;}
+.rect-list{display:flex;flex-direction:column;gap:9px;}
+.rect-btn{display:flex;align-items:center;gap:11px;width:100%;border:1px solid var(--card-border);background:var(--primary-soft);border-radius:16px;padding:14px 15px;cursor:pointer;font-family:inherit;color:var(--text);font-size:13.5px;text-align:left;}
+.rect-ico{font-size:18px;line-height:1;width:22px;text-align:center;}
+.rect-txt{flex:1;font-weight:600;letter-spacing:.3px;}
+.rect-arrow{color:var(--text-mute);font-size:16px;}
+.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:12.5px;border-bottom:1px solid var(--line);gap:8px;flex-wrap:wrap;}
+.row:last-child{border-bottom:none;}
+.row span{color:var(--text-sub);}
+.row b{font-weight:600;text-align:right;}
+.calc-box{background:var(--primary-soft);border-radius:15px;padding:11px 13px;margin:6px 0 13px;}
+.calc-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text-sub);}
+.calc-row b{color:var(--text);font-weight:600;}
+.calc-row.total{border-top:1px dashed var(--line);margin-top:5px;padding-top:8px;font-size:13.5px;}
+.calc-row.total b{color:var(--primary);font-size:16.5px;}
+.fold-bar{display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:9px;background:var(--input-bg);border:1px solid transparent;border-radius:13px;cursor:pointer;font-size:13px;}
+.fold-bar .fb-label{flex:1;color:var(--text);font-weight:600;}
+.fold-bar .fb-val{color:var(--primary);font-weight:700;font-size:12.5px;}
+.fold-bar .fb-arrow{color:var(--text-mute);font-size:12px;transition:.2s;}
+.fold-bar.open .fb-arrow{transform:rotate(180deg);}
+.fold-body{padding:10px 12px 12px;background:var(--primary-soft);border-radius:13px;margin-bottom:9px;}
+.num-pick{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px;}
+.num-pick button{border:1px solid var(--card-border);background:var(--card);color:var(--text);padding:8px 0;border-radius:9px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;}
+.num-pick button.on{background:var(--primary);color:#fff;border-color:var(--primary);}
+.check-line{display:flex;align-items:center;gap:9px;padding:10px 12px;background:var(--input-bg);border-radius:13px;margin-bottom:9px;cursor:pointer;font-size:12.5px;}
+.check-box{width:19px;height:19px;border-radius:6px;border:2px solid var(--text-mute);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;}
+.check-box.on{background:var(--primary);border-color:var(--primary);}
+.upload-wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.upload-btn{border:1px dashed var(--card-border);background:var(--input-bg);color:var(--text-sub);padding:9px 14px;border-radius:11px;font-size:11.5px;cursor:pointer;font-family:inherit;}
+.img-chip{width:52px;height:52px;border-radius:11px;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;}
+.img-chip .del{position:absolute;right:-4px;top:-4px;width:16px;height:16px;border-radius:50%;background:#d9534f;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.rec-item{padding:11px 12px;border-radius:13px;margin-bottom:8px;background:var(--input-bg);border-left:3px solid transparent;}
+.rec-item.settled{border-left-color:#5a9e6f;background:rgba(90,158,111,.07);}
+.rec-line{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;}
+.rec-title{font-size:12.5px;font-weight:600;}
+.rec-net{font-size:13.5px;font-weight:700;color:var(--primary);}
+.rec-meta{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text-mute);flex-wrap:wrap;}
+.rec-tag{font-size:9.5px;padding:3px 7px;border-radius:8px;font-weight:700;}
+.rec-tag.ok{background:rgba(90,158,111,.18);color:#3d7a4f;}
+.rec-tag.no{background:rgba(192,140,101,.18);color:var(--primary);}
+.rec-note{font-size:11px;color:var(--text-sub);margin-top:5px;line-height:1.5;}
+.rec-imgs{display:flex;gap:5px;margin-top:6px;}
+.rec-img{width:34px;height:34px;border-radius:8px;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:15px;}
+.rec-del{margin-top:7px;}
+.audit-head{display:flex;align-items:center;gap:11px;margin-bottom:10px;}
+.audit-name{font-size:13.5px;font-weight:600;margin-bottom:2px;}
+.audit-sub{font-size:10.5px;color:var(--text-sub);}
+.tag{font-size:9.5px;padding:4px 8px;border-radius:11px;background:var(--primary-soft);color:var(--primary);font-weight:700;margin-left:auto;white-space:nowrap;}
+.audit-actions{display:flex;gap:9px;}
+.audit-actions .btn{flex:1;}
+.panel{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);margin-bottom:11px;overflow:hidden;}
+.panel-head{display:flex;justify-content:space-between;align-items:center;padding:14px 15px;font-size:13px;font-weight:600;cursor:pointer;user-select:none;}
+.panel-arrow{color:var(--text-mute);transition:.2s;font-size:11px;}
+.panel.open .panel-arrow{transform:rotate(180deg);}
+.panel-body{padding:0 15px 15px;border-top:1px solid var(--line);padding-top:13px;}
+.code-item{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.code-item:last-child{border-bottom:none;}
+.code-val{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;font-weight:700;color:var(--primary);letter-spacing:1px;}
+.code-status{font-size:9.5px;padding:3px 7px;border-radius:9px;background:var(--primary-soft);color:var(--primary);margin-left:auto;}
+.code-status.used{background:rgba(0,0,0,.06);color:var(--text-mute);}
+.empty{text-align:center;color:var(--text-mute);font-size:11.5px;padding:24px 0;}
+.toast{position:fixed;left:50%;bottom:100px;transform:translate(-50%,14px);background:rgba(50,44,38,.93);color:#fff;font-size:12px;padding:10px 18px;border-radius:14px;opacity:0;pointer-events:none;transition:.25s;z-index:999;max-width:78%;text-align:center;line-height:1.5;}
+.toast.show{opacity:1;transform:translate(-50%,0);}
+.modal-mask{position:absolute;inset:0;background:rgba(30,24,20,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:10%;}
+.modal-box{width:100%;height:80%;background:var(--card);border-radius:22px;padding:20px;display:flex;flex-direction:column;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid var(--card-border);}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:12px;text-align:center;}
+.modal-content{flex:1;font-size:12.5px;line-height:1.9;color:var(--text-sub);white-space:pre-wrap;}
+.modal-actions{display:flex;gap:9px;margin-top:14px;}
+.notice-item{padding:11px 0;border-bottom:1px solid var(--line);}
+.notice-item:last-child{border-bottom:none;}
+.notice-title{font-size:12.5px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:7px;}
+.notice-dot{width:6px;height:6px;border-radius:50%;background:#d9534f;flex-shrink:0;}
+.notice-text{font-size:11px;color:var(--text-sub);line-height:1.6;}
+.notice-time{font-size:9.5px;color:var(--text-mute);margin-top:4px;}
+.row-flex{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:9px;}
+.loading{text-align:center;padding:40px 0;color:var(--text-mute);font-size:12px;}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin-right:6px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+  <div class="orbs"><i></i><i></i><i></i></div>
+  <div class="screen">
+    <header class="topbar" id="topbar"></header>
+    <main class="app" id="app"></main>
+    <nav class="tabbar" id="tabbar"></nav>
+  </div>
+  <div id="modalRoot"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://thoaduhgtghskretxfut.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_rM9DsjFSuDd7PmnD4LP9rQ_CdvbkrD5';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+var ROLE_LABEL={admin:'管理员',leader:'团长',vice_leader:'副团',staff:'员工',player:'陪玩',pending:'待审陪'};
+
+var S={
+  theme: localStorage.getItem('theme') || 'glass',
+  user: null, clubs: [], currentClub: null, currentRole: null,
+  page: 'login', history: [], params: {},
+  regTab: 'join', auditTab: 'hall', finTab: 'stat', finPeriod: 'month', rankPeriod: 'month', rankType: 'flow',
+  panels: {}, folds: {extra:false, discount:false}, pageIdx: 0,
+  selPlayer: null, selOrders: [], genCodes: [], allClubs: [],
+  modal: null, pendingTab: 'audit', playerPendingTab: 'audit', appStatus: 'none', standardGame: '',
+  extraVal: 0, discountVal: 10, orderSettled: false, notes: {rp:'',staff:''}, images: {rp:[],staff:[],pending:[]},
+  staffQuery: '', allQuery: '',
+  commission: {}, topBonus: 15, topPlayers: [], requirements: {}, reqEditGame: '王者荣耀', gameTree: [],
+  orders: [], audits: [], fines: [], promos: [], notices: [], members: [],
+  loading: false, topPickerOpen: false
+};
+
+function $(s){return document.querySelector(s);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function card(html,cls){return '<div class="card '+(cls||'')+'">'+html+'</div>';}
+function secTitle(t){return '<div class="sec-title">'+t+'</div>';}
+function field(label,ph,val,id){return '<div class="field"><div class="field-label">'+label+'</div><input class="input" id="'+(id||'')+'" placeholder="'+ph+'" value="'+(val||'')+'"></div>';}
+function rowEl(l,v,cls){return '<div class="row '+(cls||'')+'"><span>'+l+'</span><b>'+v+'</b></div>';}
+function applyTheme(){var p=$('#phone');if(p)p.className='phone'+(S.theme==='y2k'?' theme-y2k':S.theme==='pixel'?' theme-pixel':'');}
+
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.className='toast';document.body.appendChild(t);}t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show');},2500);}
+function genCode(){var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';function pick(){var s='';for(var i=0;i<4;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}return pick()+'-'+pick()+'-'+pick()+'-'+pick();}
+
+/* ================= 核心数据交互 ================= */
+
+async function login(username, password){
+  S.loading = true; render();
+  try{
+    const { data, error } = await db.from('profiles').select('*').eq('username', username).eq('password', password).maybeSingle();
+    if(error) throw error;
+    if(!data){ toast('用户名或密码错误'); return false; }
+    S.user = data; localStorage.setItem('uid', data.id); await bootUser(); return true;
+  }catch(e){ toast('登录失败：' + e.message); return false; } finally{ S.loading = false; }
+}
+
+async function loadCurrentUser(){
+  const uid = localStorage.getItem('uid'); if(!uid) return false;
+  const { data, error } = await db.from('profiles').select('*').eq('id', uid).maybeSingle();
+  if(error || !data) return false;
+  S.user = data; return await bootUser();
+}
+
+async function bootUser(){
+  if(!S.user) return false;
+  const roles = S.user.roles || []; const clubIds = roles.map(r => r.club_id).filter(Boolean);
+  
+  if(clubIds.length === 0){
+    S.clubs = []; S.currentClub = null; S.currentRole = 'pending';
+    S.page = 'pending-audit'; return true;
+  }
+  
+  const { data: clubs } = await db.from('clubs').select('*').in('id', clubIds);
+  S.clubs = clubs || []; 
+  const activeId = S.user.current_club_id || (S.clubs[0] && S.clubs[0].id);
+  S.currentClub = S.clubs.find(c => c.id === activeId) || S.clubs[0] || null;
+  
+  if (S.currentClub) {
+    const activeRole = roles.find(r => r.club_id === S.currentClub.id);
+    S.currentRole = S.user.active_role || activeRole?.role || 'player';
+    S.commission = S.currentClub.commission || { base: 20, tiered: [], top_bonus: 15, top_players: [], dispatch_rate: 8, direct_rate: 5 };
+    S.gameTree = S.commission.gameTree || [{name:'王者荣耀', items:[{name:'排位', durations:[{hours:1, price:30}]}]}];
+    S.requirements = S.commission.requirements || { '王者荣耀': [{title:'基础要求', text:'段位星耀以上，声音好听'}] };
+  }
+  
+  S.page = 'home'; await loadHomeData(); return true;
+}
+
+async function loadHomeData(){
+  if(!S.currentClub || !S.user) return;
+  S.loading = true; render();
+  try {
+    const from = S.pageIdx * 20;
+    const { data: ordersData } = await db.from('orders').select('*').eq('club_id', S.currentClub.id).order('created_at', { ascending: false }).range(from, from + 19);
+    S.orders = ordersData || [];
+
+    const { data: auditData } = await db.from('applications').select('*').eq('club_id', S.currentClub.id).order('created_at', { ascending: false });
+    S.audits = auditData || [];
+
+    const { data: allProfiles } = await db.from('profiles').select('id,username,nick,roles');
+    S.members = (allProfiles || []).filter(p => (p.roles || []).some(r => r.club_id === S.currentClub.id));
+
+    S.fines = S.orders.filter(o => o.type === '罚款');
+    S.promos = S.orders.filter(o => o.type === '外宣');
+  } catch(e) {
+    console.log(e);
+  } finally {
+    S.loading = false; render();
+  }
+}
+
+async function loadSuperData() {
+  const [authRes, clubRes] = await Promise.all([
+    db.from('auth_codes').select('*').order('created_at', { ascending: false }),
+    db.from('clubs').select('id, name')
+  ]);
+  S.genCodes = authRes.data || [];
+  S.allClubs = clubRes.data || [];
+}
+
+/* ================= 路由与渲染 ================= */
+
+function go(page,params){S.history.push({page:S.page,params:S.params});S.page=page;S.params=params||{};S.pageIdx=0;
+  if(page === 'super-console') loadSuperData().then(render);
+  else if(page === 'finance' || page === 'rank') loadHomeData();
+  else render();
+}
+function back(){var h=S.history.pop();if(h){S.page=h.page;S.params=h.params;}else{S.page=S.user?'home':'login';}S.pageIdx=0;render();}
+function switchTab(k){S.history=[];S.page=k;S.pageIdx=0;
+  if(k === 'finance' || k === 'rank') loadHomeData();
+  else render();
+}
+
+function tabsFor(role){
+  if(role==='player') return [['home','主页','🏠'],['pending-hub','待审','⏳'],['finance','流水','💰'],['rank','榜单','🏆'],['settings','设置','⚙️']];
+  return [['home','主页','🏠'],['audit','审核','🔍'],['finance','流水','💰'],['rank','榜单','🏆'],['settings','设置','⚙️']];
+}
+
+function render(){
+  applyTheme();
+  var p=PAGES[S.page]||PAGES.home;
+  var tb=$('#topbar');
+
+  if(p.bare || !S.user || S.currentRole==='pending'){
+    if (S.currentRole==='pending') {
+      tb.style.display='flex';tb.className='pending-topbar';
+      var ptMap={audit:'审核',standard:'标准',notice:'通知',settings:'设置'};
+      tb.innerHTML=['audit','standard','notice','settings'].map(k=>'<button class="pt-tab '+(S.pendingTab===k?'on':'')+'" data-act="pending-tab" data-v="'+k+'">'+ptMap[k]+'</button>').join('');
+    } else {
+      tb.style.display='none';tb.innerHTML='';tb.className='topbar';
+    }
+  } else {
+    tb.style.display='flex';tb.className='topbar';
+    tb.innerHTML=(p.back?'<button class="tb-back" data-act="back">‹</button>':'<div class="tb-back ghost"></div>')+'<div class="tb-title">'+(p.title||'')+'</div>'+'<div class="tb-right">'+(p.right?p.right():'')+'</div>';
+  }
+
+  var app=$('#app');app.innerHTML=p.render();app.scrollTop=0;
+
+  var tbEl=$('#tabbar');
+  if(p.bare||!S.user||!S.currentClub||S.currentRole==='pending'){tbEl.style.display='none';tbEl.innerHTML='';}
+  else{
+    tbEl.style.display='flex';var tt=tabsFor(S.currentRole);var tHtml='';
+    for(var m=0;m<tt.length;m++){var t=tt[m];var on=(S.page===t[0])?'on':'';tHtml+='<button class="tab '+on+'" data-act="tab" data-v="'+t[0]+'"><span class="tab-ico">'+t[2]+'</span><span class="tab-txt">'+t[1]+'</span></button>';}
+    tbEl.innerHTML=tHtml;
+  }
+
+  renderModal();if(p.after)p.after();
+}
+
+function renderModal(){
+  var root=$('#modalRoot');
+  if(!S.modal){root.innerHTML='';return;}
+  root.innerHTML='<div class="modal-mask" data-act="close-modal"><div class="modal-box" onclick="event.stopPropagation()">'+
+    '<div class="modal-title">'+S.modal.title+'</div><div class="modal-content">'+S.modal.content+'</div>'+
+    '<div class="modal-actions"><button class="btn btn-ghost btn-block" data-act="close-modal">我知道了</button>'+
+    (S.modal.action?'<button class="btn btn-primary btn-block" data-act="'+S.modal.action+'">'+S.modal.actionText+'</button>':'')+'</div></div></div>';
+}
+
+/* ================= 页面定义 ================= */
+var PAGES={};
+
+PAGES.login={bare:true,render:function(){
+  return '<div class="login"><div class="login-hero"><div class="login-logo">🍬</div><h1>俱乐部管理系统</h1><p>温柔陪伴 · 治愈每一刻</p></div>'+
+    card('<input class="input" id="login-user" placeholder="用户名"><input class="input" id="login-pass" type="password" placeholder="密码"><button class="btn btn-primary btn-block" data-act="do-login">登 录</button><div class="login-register" data-act="goto" data-page="register">还没有账号？<b>立即注册</b></div>')+
+    '<button class="lock" data-act="goto" data-page="super-login">🔒</button></div>';
+}};
+
+PAGES.register={title:'注册',back:true,render:function(){
+  var tab=S.regTab;
+  var baseFields = field('用户名','登录账号') + field('密码','登录密码','') + field('昵称','显示名称','');
+  return '<div class="seg"><div class="seg-item '+(tab==='join'?'on':'')+'" data-act="regtab" data-v="join">加入俱乐部</div><div class="seg-item '+(tab==='new'?'on':'')+'" data-act="regtab" data-v="new">开新俱乐部</div></div>'+
+  (tab==='join'?card(baseFields + field('俱乐部名称','例如：王者俱乐部')+field('绑定码','员工码 / 陪玩码')+'<button class="btn btn-primary btn-block" data-act="do-join">提交加入</button>')
+  :card(baseFields + field('俱乐部名称','给你的俱乐部起个名字')+field('最高管理员授权码','8位/16位字符')+'<button class="btn btn-primary btn-block" data-act="do-new-club">创建俱乐部</button>'));
+}};
+
+function recItem(o,showDelete){
+  var timeStr = o.created_at ? new Date(o.created_at).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+  return '<div class="rec-item '+(o.settled?'settled':'')+'"><div class="rec-line"><span class="rec-title">'+esc(o.game||'')+' · '+esc(o.type||'报备')+' · '+(o.hours||0)+'h</span><span class="rec-net">¥'+(Number(o.net)||0).toFixed(2)+'</span></div>'+
+    '<div class="rec-meta"><span class="rec-tag '+(o.settled?'ok':'no')+'">'+(o.settled?'✓ 已结算':'未结算')+'</span><span>'+timeStr+'</span></div>'+
+    (o.note?'<div class="rec-note">📝 '+esc(o.note)+'</div>':'')+
+    (o.images&&o.images.length?'<div class="rec-imgs">'+o.images.map(function(i){return '<span class="rec-img"><img src="'+esc(i)+'"></span>';}).join('')+'</div>':'')+
+    (showDelete?'<div class="rec-del"><button class="btn btn-ghost btn-sm" data-act="del-record" data-v="'+o.id+'">删除记录</button></div>':'')+'</div>';
+}
+
+PAGES.home={title:'主页',render:function(){
+  if(S.loading) return '<div class="loading"><span class="spinner"></span>加载中…</div>';
+  var u=S.user; if(!u) return '<div class="empty">请先登录</div>';
+  if(!S.currentClub) return card('<div class="card-title">还没有加入俱乐部</div><div class="hint">请联系管理员获取绑定码，在设置页输入即可加入</div>');
+
+  var role=S.currentRole; var isAdmin=role==='admin'; var readonly=(role==='leader'||role==='vice_leader'); var isPlayer=role==='player';
+  var isTop=(S.commission.top_players||[]).indexOf(u.nick)>=0;
+  var myOrders = S.orders.filter(o=>o.user_id===u.id);
+  var monthNet = myOrders.reduce((s,o)=>s+(Number(o.net)||0),0);
+  var monthGross = myOrders.reduce((s,o)=>s+(Number(o.gross)||0),0);
+
+  var baseCard = card('<div class="profile"><div class="avatar">'+esc((u.nick||u.username||'?').slice(0,1))+'</div><div class="profile-main"><div class="profile-name">'+esc(u.nick||u.username)+'</div><div class="profile-meta">'+esc(S.currentClub.name)+' · '+ROLE_LABEL[role]+'</div></div>'+(isTop?'<div class="badge">本月头牌</div>':'')+'</div>'+
+      '<div class="stat-grid" style="margin-top:15px;"><div class="stat"><div class="stat-num">¥'+monthNet.toFixed(0)+'</div><div class="stat-lbl">累计实得</div></div><div class="stat"><div class="stat-num">¥'+monthGross.toFixed(0)+'</div><div class="stat-lbl">累计流水</div></div><div class="stat"><div class="stat-num">'+myOrders.length+'</div><div class="stat-lbl">累计单量</div></div><div class="stat"><div class="stat-num">'+(isTop?'是':'否')+'</div><div class="stat-lbl">本月头牌</div></div></div>');
+
+  if(isPlayer){
+    return baseCard + card(PAGES['report-player-form'].render()) + secTitle('我的报备记录') + card(myOrders.length?myOrders.slice(0,5).map(function(o){return recItem(o);}).join(''):'<div class="empty">暂无记录</div>');
+  }
+
+  var btns=[{label:'陪玩报备',icon:'📝',page:'report-player'},{label:'直属报备',icon:'🤝',page:'report-direct'},{label:'派单报备',icon:'📤',page:'report-dispatch'},{label:'外宣录入',icon:'📣',page:'report-promo'}];
+  if(isAdmin){btns.push({label:'罚款',icon:'⚠️',page:'fine'});btns.push({label:'全部记录',icon:'📚',page:'all-records'});}
+  var btnHtml = btns.map(b=>'<button class="rect-btn" data-act="goto" data-page="'+b.page+'"><span class="rect-ico">'+b.icon+'</span><span class="rect-txt">'+b.label+'</span><span class="rect-arrow">›</span></button>').join('');
+  
+  return (readonly?'<div class="banner">👀 当前身份为<b>只读</b>，修改 / 删除类按钮已隐藏</div>':'') + baseCard + card('<div class="rect-list">'+btnHtml+'</div>');
+}};
+
+PAGES['report-player-form']={render:function(){
+  var extraPick='',discPick='';
+  for(var e=0;e<=10;e++)extraPick+='<button class="'+(S.extraVal===e?'on':'')+'" data-act="pick-num" data-target="extra" data-v="'+e+'">'+e+'</button>';
+  for(var d=1;d<=10;d++)discPick+='<button class="'+(S.discountVal===d?'on':'')+'" data-act="pick-num" data-target="discount" data-v="'+d+'">'+d+'</button>';
+  
+  return '<div class="card-title">填写报备</div>'+
+    '<div class="field"><div class="field-label">游戏</div><select class="input" id="rp-game"><option>光遇</option><option>王者荣耀</option></select></div>'+
+    '<div class="field"><div class="field-label">项目</div><select class="input" id="rp-item"><option>普通陪玩</option><option>技术带飞</option></select></div>'+
+    '<div class="field"><div class="field-label">时长</div><select class="input" id="rp-dur"><option>半小时</option><option>一小时</option></select></div>'+
+    '<div class="field"><div class="field-label">项目金额（元）</div><input type="number" class="input" id="rp-gross" placeholder="0.00" oninput="rpCalc()"></div>'+
+    
+    '<div class="fold-bar '+(S.folds.extra?'open':'')+'" data-act="toggle-fold" data-v="extra"><span class="fb-label">➕ 加价</span><span class="fb-val">+'+S.extraVal+' 元</span><span class="fb-arrow">▾</span></div>'+
+    (S.folds.extra?'<div class="fold-body"><div class="num-pick">'+extraPick+'</div></div>':'')+
+    '<div class="fold-bar '+(S.folds.discount?'open':'')+'" data-act="toggle-fold" data-v="discount"><span class="fb-label">🏷️ 折扣</span><span class="fb-val">'+S.discountVal+' 折</span><span class="fb-arrow">▾</span></div>'+
+    (S.folds.discount?'<div class="fold-body"><div class="num-pick">'+discPick+'</div></div>':'')+
+    
+    '<div class="check-line" data-act="toggle-settled"><span class="check-box '+(S.orderSettled?'on':'')+'">'+(S.orderSettled?'✓':'')+'</span><span>此单已结清</span></div>'+
+    '<div class="calc-box" id="rp-calc"></div>'+
+    '<div class="field"><div class="field-label">备注</div><textarea class="input" id="rp-note" placeholder="补充说明…"></textarea></div>'+
+    '<div class="field"><div class="field-label">上传图片</div><button class="btn btn-ghost btn-block">📷 点击上传截图</button></div>'+
+    '<button class="btn btn-primary btn-block" data-act="submit-player-report" style="margin-top:12px">提交报备</button>';
+},after:function(){rpCalc();}};
+
+PAGES['report-player']={title:'陪玩报备',back:true,render:function(){
+  return card(PAGES['report-player-form'].render()) + secTitle('我的报备记录') + card(S.orders.filter(o=>o.user_id===S.user.id).slice(0,5).map(function(o){return recItem(o);}).join('') || '<div class="empty">暂无记录</div>');
+},after:function(){rpCalc();}};
+
+window.rpCalc=function(){
+  var box=document.getElementById('rp-calc');if(!box)return;
+  var gross=parseFloat(document.getElementById('rp-gross').value)||0;
+  var extra=S.extraVal,disc=S.discountVal;
+  var finalGross=+(((gross+extra)*(disc/10)).toFixed(2));
+  var rate=(S.commission && S.commission.base) || 20; 
+  var net=+(finalGross*(1-rate/100)).toFixed(2);
+  box.innerHTML='<div class="calc-row"><span>折后总额 Gross</span><b>¥'+finalGross.toFixed(2)+'</b></div><div class="calc-row"><span>抽成率</span><b>'+rate+'%</b></div><div class="calc-row total"><span>实得 Net</span><b>¥'+net.toFixed(2)+'</b></div>';
+}
+
+function makeStaffReportPage(kind){
+  var isDirect=kind==='direct';
+  return {title:isDirect?'直属报备':'派单报备',back:true,render:function(){
+    var sel=S.selPlayer;
+    var myOrders=sel?S.orders.filter(function(o){return o.user_id===sel;}).slice(0,10):[];
+    var chosen=S.orders.filter(function(o){return S.selOrders.indexOf(o.id)>=0;});
+    var total=0;for(var i=0;i<chosen.length;i++)total+=Number(chosen[i].gross);
+    var wage=+(total*(isDirect?0.05:0.08)).toFixed(2);
+    
+    var chips=S.members.map(m=>'<button class="chip '+(sel===m.id?'on':'')+'" data-act="pick-player" data-v="'+m.id+'">'+esc(m.nick||m.username)+'</button>').join('');
+    var orderRows=myOrders.map(o=>'<div class="row" data-act="toggle-order" data-v="'+o.id+'" style="cursor:pointer"><span>'+(S.selOrders.indexOf(o.id)>=0?'☑':'☐')+' '+esc(o.type)+' · ¥'+o.gross+'</span></div>').join('');
+    
+    return card('<div class="card-title">选择陪玩</div><div style="display:flex;gap:7px;flex-wrap:wrap;">'+chips+'</div>')+
+      (sel?card('<div class="card-title">勾选单子 (已折叠)</div><div class="panel"><div class="panel-head">查看可勾选单子 <span class="panel-arrow">▾</span></div><div class="panel-body">'+orderRows+'</div></div>'+
+        '<div class="calc-box"><div class="calc-row"><span>已选单数</span><b>'+chosen.length+' 单</b></div><div class="calc-row total"><span>我的工资</span><b>¥'+wage.toFixed(2)+'</b></div></div>'+
+        '<div class="field"><div class="field-label">备注</div><input class="input" placeholder="选填备注"></div>'+
+        '<div class="field"><div class="field-label">上传图片</div><button class="btn btn-ghost btn-block">📷 添加图片</button></div>'+
+        '<button class="btn btn-primary btn-block" data-act="submit-staff-report" data-kind="'+kind+'">确认拉单</button>')
+      :card('<div class="empty">请先选择一位陪玩</div>'));
+  }};
+}
+PAGES['report-direct']=makeStaffReportPage('direct');
+PAGES['report-dispatch']=makeStaffReportPage('dispatch');
+
+PAGES['report-promo']={title:'外宣录入',back:true,render:function(){
+  return card('<div class="card-title">填写外宣数据</div>'+
+    '<div class="field"><div class="field-label">选择软件</div><select class="input"><option>抖音</option><option>快手</option></select></div>'+
+    '<div class="field"><div class="field-label">档位选择</div><select class="input"><option>一档（500-1000流量）</option><option>二档（1000+流量）</option></select></div>'+
+    '<div class="field"><div class="field-label">数据填写 (软件/流量/赞/评/私/数量)</div><input class="input" placeholder="例如：抖音/1w播放/100赞/20评/5私/10个"></div>'+
+    '<button class="btn btn-primary btn-block" data-act="submit-promo">提交录入</button>')+
+    secTitle('我的外宣记录')+card('<div class="empty">暂无记录</div>');
+}};
+
+PAGES.fine={title:'罚款下发',back:true,render:function(){
+  var opts = S.members.map(m=>'<option value="'+m.id+'">'+esc(m.nick||m.username)+'</option>').join('');
+  return card('<div class="card-title">下发罚款单</div><div class="field"><div class="field-label">选择陪玩</div><select class="input" id="fn-player">'+opts+'</select></div>'+field('金额','0.00','','fn-amount')+field('原因','违规事项','','fn-reason')+'<button class="btn btn-primary btn-block" data-act="submit-fine" style="background:#d9534f;">确认下发</button>')+
+    secTitle('罚款记录')+card('<div class="empty">暂无记录</div>');
+}};
+
+PAGES['all-records']={title:'全部记录',back:true,render:function(){
+  var isAdmin=S.currentRole==='admin';
+  return card('<div class="card-title">全员报备记录</div>'+ (S.orders.length ? S.orders.map(o=>recItem(o,isAdmin)).join('') : '<div class="empty">暂无记录</div>'));
+}};
+
+PAGES.audit={title:'审核',right:function(){return S.currentRole==='admin'?'<button class="tb-btn" data-act="goto" data-page="audit-list">审核列表</button>':'';},render:function(){
+  var tab=S.auditTab;
+  var list=S.audits.filter(function(a){return tab==='hall'?a.status==='waiting':a.status==='reviewing';});
+  var html=list.map(a=>card('<div class="audit-head"><div class="avatar sm">🍇</div><div><div class="audit-name">'+esc(a.game||'')+'</div><div class="audit-sub">'+esc(a.skill||'')+'</div></div><div class="tag">待审</div></div><div class="audit-actions">'+(tab==='hall'?'<button class="btn btn-primary" data-act="audit-take" data-v="'+a.id+'">审核</button>':'<button class="btn btn-ghost" data-act="audit-reject" data-v="'+a.id+'">拒绝</button><button class="btn btn-primary" data-act="audit-pass" data-v="'+a.id+'">通过</button>')+'</div>')).join('');
+  return '<div class="seg"><div class="seg-item '+(tab==='hall'?'on':'')+'" data-act="audittab" data-v="hall">大厅</div><div class="seg-item '+(tab==='mine'?'on':'')+'" data-act="audittab" data-v="mine">我的审核</div></div>'+ (html || card('<div class="empty">空空如也~</div>'));
+}};
+
+PAGES['audit-list']={title:'审核列表',back:true,render:function(){
+  return card('<div class="empty">暂无审核记录</div>');
+}};
+
+PAGES['pending-hub']={title:'待审',render:function(){return '';}};
+PAGES['pending-audit']={title:'审核',render:function(){
+  if(S.appStatus==='passed') return card('<div style="text-align:center;padding:20px;"><h2>🎉 审核已通过</h2><p>请联系管理员获取陪玩绑定码</p></div>');
+  if(S.appStatus==='waiting') return card('<div style="text-align:center;padding:20px;"><h2>⏳ 正在审核中</h2><p>请耐心等待</p></div>');
+  return card('<div class="card-title">提交审核资料</div><div class="field"><label class="field-label">选择游戏</label><select class="input"><option>光遇</option></select></div>'+field('微信号','必填')+'<button class="btn btn-primary btn-block" data-act="submit-pending-app">提交审核</button>');
+}};
+PAGES['pending-standard']={title:'标准',render:function(){return card('<div class="empty">请选择游戏查看要求</div>');}};
+PAGES['pending-notice']={title:'通知',render:function(){return card('<div class="empty">暂无通知</div>');}};
+PAGES['pending-settings']={title:'设置',render:function(){return card('<div class="empty">账号设置</div>');}};
+
+PAGES.finance={title:'流水',render:function(){
+  return '<div class="seg"><div class="seg-item on">流水统计</div><div class="seg-item">工资表</div></div>'+
+  card('<div class="stat-grid"><div class="stat"><div class="stat-num">'+S.orders.length+'</div><div class="stat-lbl">总单数</div></div><div class="stat"><div class="stat-num">¥'+S.orders.reduce((s,o)=>s+Number(o.gross||0),0).toFixed(0)+'</div><div class="stat-lbl">总流水</div></div></div>');
+}};
+PAGES.rank={title:'榜单',render:function(){return card('<div class="empty">榜单数据</div>');}};
+
+PAGES.settings={title:'设置',render:function(){
+  return card('<div class="card-title">账号资料</div>'+field('用户名','',S.user.username,'','readonly')+field('昵称','',S.user.nick)+'<button class="btn btn-primary btn-block" data-act="save-nickname">保存</button>')+
+  card('<div class="card-title">公共设置</div><div class="row"><span>🎨 主题</span><span style="display:flex;gap:5px"><button class="chip" data-act="theme" data-v="glass">奶油</button><button class="chip" data-act="theme" data-v="y2k">Y2K</button></span></div>'+rowEl('当前身份',ROLE_LABEL[S.currentRole])+'<button class="btn btn-ghost btn-block" style="margin-top:11px;color:#d9534f" data-act="logout">退出登录</button>');
+}};
+
+PAGES['super-login']={title:'最高管理员',back:true,render:function(){
+  return card('<input class="input" type="password" id="super-pass" placeholder="请输入最高权限密码">'+'<button class="btn btn-primary btn-block" data-act="super-login">进入控制台</button>');
+}};
+PAGES['super-console']={title:'控制台',back:true,render:function(){
+  var totalCodes = S.genCodes.length;
+  var unusedCodes = S.genCodes.filter(c=>!c.used).length;
+  var clubCount = S.allClubs.length;
+  
+  var statCard = card('<div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;"><div class="stat"><div class="stat-num" style="color:#333;">'+totalCodes+'</div><div class="stat-lbl">总授权码</div></div><div class="stat"><div class="stat-num" style="color:#22c55e;">'+unusedCodes+'</div><div class="stat-lbl">未使用</div></div><div class="stat"><div class="stat-num" style="color:#3b82f6;">'+clubCount+'</div><div class="stat-lbl">俱乐部数</div></div></div>');
+  
+  var genBtnCard = card('<div class="card-title">🔑 授权码管理</div><div class="hint" style="text-align:left; margin-bottom:10px;">新俱乐部注册时需要授权码。每个授权码只能用一次。</div><button class="btn btn-primary btn-block" data-act="gen-code">+ 生成新授权码</button>');
+  
+  var clubHtml = S.allClubs.map(c=>'<div class="row"><span>'+esc(c.name)+'</span></div>').join('') || '<div class="empty">还没有俱乐部</div>';
+  var clubCard = card('<div class="card-title">🏛️ 所有俱乐部 <span class="badge">'+clubCount+' 个</span></div>'+clubHtml);
+  
+  var codeHtml = S.genCodes.map(c=>{
+    return '<div class="code-item"><span class="code-val">'+c.code+'</span><span class="code-status '+(c.used?'used':'')+'">'+(c.used?'已使用':'未使用')+'</span></div>';
+  }).join('') || '<div class="empty">还没有授权码，点上面按钮生成一个</div>';
+  var codeCard = card('<div class="card-title">📋 授权码列表</div>'+codeHtml);
+  
+  return statCard + genBtnCard + clubCard + codeCard;
+}};
+
+/* ================= 事件与逻辑 (带 error 拦截) ================= */
+document.addEventListener('click',function(e){
+  var el=e.target.closest('[data-act]');
+  if(!el) return;
+  var a = el.dataset.act, v = el.dataset.v;
+  
+  switch(a){
+    case 'goto': go(el.dataset.page); break;
+    case 'back': back(); break;
+    case 'tab': switchTab(v); break;
+    case 'regtab': S.regTab=v; render(); break;
+    case 'theme': S.theme=v; localStorage.setItem('theme', v); applyTheme(); render(); break;
+    case 'logout': localStorage.removeItem('uid'); window.location.reload(); break;
+    
+    case 'do-login': {
+      var u=document.getElementById('login-user').value.trim();
+      var p=document.getElementById('login-pass').value;
+      login(u,p);
+      break;
+    }
+    
+    case 'pending-tab': S.pendingTab=v; S.page='pending-'+v; render(); break;
+    case 'audittab': S.auditTab=v; render(); break;
+    case 'toggle-fold': S.folds[v]=!S.folds[v]; render(); break;
+    case 'pick-num': if(el.dataset.target==='extra') S.extraVal=+v; else S.discountVal=+v; render(); break;
+    case 'toggle-settled': S.orderSettled=!S.orderSettled; render(); break;
+    case 'pick-player': S.selPlayer=v; S.selOrders=[]; render(); break;
+    case 'toggle-order': { var i=S.selOrders.indexOf(v); if(i>=0)S.selOrders.splice(i,1); else S.selOrders.push(v); render(); break; }
+    
+    case 'submit-player-report': {
+      var gross = parseFloat(document.getElementById('rp-gross').value) || 0;
+      var note = document.getElementById('rp-note').value;
+      if(!gross) { toast('请填写金额'); break; }
+      var rate = (S.commission && S.commission.base) || 20;
+      var net = +(gross*(1-rate/100)).toFixed(2);
+      db.from('orders').insert({ id: crypto.randomUUID(), club_id: S.currentClub.id, user_id: S.user.id, type: '陪玩单', game: document.getElementById('rp-game').value, gross, net, settled: S.orderSettled, note, created_at: Date.now() }).then(res => {
+        if(res.error) return toast('报备失败: ' + res.error.message);
+        toast('报备成功'); S.orderSettled=false; loadHomeData();
+      });
+      break;
+    }
+    
+    case 'submit-staff-report': {
+      var kind = el.dataset.kind;
+      if(!S.selOrders.length){ toast('请勾选单子'); break; }
+      var chosen = S.orders.filter(o=>S.selOrders.includes(o.id));
+      var total = chosen.reduce((s,o)=>s+Number(o.gross||0),0);
+      var wage = +(total*(kind==='direct'?0.05:0.08)).toFixed(2);
+      db.from('orders').insert({ id: crypto.randomUUID(), club_id: S.currentClub.id, user_id: S.user.id, type: kind==='direct'?'直属提成':'派单提成', gross: total, net: wage, note: '拉单', created_at: Date.now() }).then(res => {
+        if(res.error) return toast('拉单失败: ' + res.error.message);
+        toast('拉单成功'); S.selOrders=[]; loadHomeData();
+      });
+      break;
+    }
+    
+    case 'submit-fine': {
+      var fnUser = document.getElementById('fn-player').value;
+      var amt = parseFloat(document.getElementById('fn-amount').value)||0;
+      var rsn = document.getElementById('fn-reason').value;
+      if(!amt) { toast('金额不能为空'); break; }
+      db.from('orders').insert({ id: crypto.randomUUID(), club_id: S.currentClub.id, user_id: fnUser, type: '罚款', gross: 0, net: -amt, note: rsn, created_at: Date.now() }).then(res => {
+        if(res.error) return toast('罚款下发失败: ' + res.error.message);
+        toast('罚款已下发'); loadHomeData();
+      });
+      break;
+    }
+    
+    case 'audit-take': db.from('applications').update({status:'reviewing'}).eq('id', v).then(()=>loadHomeData()); break;
+    case 'audit-pass': db.from('applications').update({status:'passed'}).eq('id', v).then(()=>loadHomeData()); break;
+    case 'audit-reject': db.from('applications').update({status:'rejected'}).eq('id', v).then(()=>loadHomeData()); break;
+    
+    case 'save-nickname': {
+      var newNick = document.querySelectorAll('#app .input')[1].value;
+      db.from('profiles').update({nick: newNick}).eq('id', S.user.id).then(res => {
+        if(res.error) return toast('保存失败: ' + res.error.message);
+        toast('已保存'); S.user.nick=newNick; render();
+      });
+      break;
+    }
+    
+    case 'super-login': 
+      if(document.getElementById('super-pass').value !== '846467554jxjsjsisjidbdgujwqkjsuxhv；@') { toast('密码错误'); break; }
+      go('super-console'); break;
+      
+    case 'gen-code':
+      // 【已修改】只需传入 code，数据库会自动生成 id (uuid) 和 created_at (timestamptz)
+      db.from('auth_codes').insert({ code: genCode() }).then(res => {
+        if(res.error) { toast('生成失败: ' + res.error.message); return; }
+        loadSuperData().then(()=>{ render(); toast('生成成功'); });
+      });
+      break;
+  }
+});
+
+document.addEventListener('input', function(e) {
+  if(e.target.id === 'rp-gross') rpCalc();
+});
+
+(async function init(){ 
+  applyTheme(); 
+  var ok = await loadCurrentUser(); 
+  if(!ok) S.page = 'login'; 
+  render(); 
+})();
+</script>
+</body>
+</html>
