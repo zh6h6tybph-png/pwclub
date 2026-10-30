@@ -1,0 +1,2302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>陪玩俱乐部</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;min-height:100%}
+body{font-family:-apple-system,"PingFang SC","Helvetica Neue",Arial,sans-serif;font-size:14px;color:var(--text);background:var(--bg);font-weight:var(--fw,400);transition:background .35s,color .35s}
+
+:root[data-theme="glass"]{
+  --bg:#f5f2eb; --card:rgba(255,255,255,.60); --card2:rgba(255,255,255,.40);
+  --text:#3a332c; --sub:#a49a8c; --line:rgba(192,140,101,.16);
+  --primary:#c08c65; --primary-ink:#fff; --danger:#e0736b; --ok:#7aa95c;
+  --radius:26px; --radius-sm:15px; --shadow:0 10px 34px rgba(170,150,125,.15);
+  --blur:blur(20px); --border:1px solid rgba(255,255,255,.75); --fw:400;
+}
+:root[data-theme="y2k"]{
+  --bg:#ffe6f0; --card:#ffffff; --card2:#fff;
+  --text:#111; --sub:#777; --line:#111;
+  --primary:#ff5c8a; --primary-ink:#fff; --danger:#ff2d55; --ok:#00b894;
+  --radius:6px; --radius-sm:4px; --shadow:6px 6px 0 #111;
+  --blur:none; --border:2.5px solid #111; --fw:600;
+}
+:root[data-theme="pixel"]{
+  --bg:#2b2118; --card:#f4e4c1; --card2:#e8d5ad;
+  --text:#3b2f1e; --sub:#7a6748; --line:#6b5433;
+  --primary:#7aa95c; --primary-ink:#fff; --danger:#c0563f; --ok:#5c9a3f;
+  --radius:3px; --radius-sm:2px; --shadow:4px 4px 0 #1a140e;
+  --blur:none; --border:3px solid #6b5433; --fw:600;
+}
+:root[data-theme="glass"] body{background:
+  radial-gradient(120% 80% at 8% 0%,#fff7ea 0%,transparent 58%),
+  radial-gradient(110% 70% at 95% 8%,#f4e9ff 0%,transparent 55%),
+  radial-gradient(130% 90% at 50% 100%,#e9f3ff 0%,transparent 62%),#f5f2eb;background-attachment:fixed}
+:root[data-theme="y2k"] body{background-color:#ffe6f0;
+  background-image:linear-gradient(rgba(255,92,138,.26) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,92,138,.26) 1px,transparent 1px);
+  background-size:22px 22px;background-attachment:fixed}
+:root[data-theme="pixel"] body{background:#2b2118}
+
+#app{max-width:520px;margin:0 auto;min-height:100vh;padding:14px 14px 96px;position:relative}
+.card{background:var(--card);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.card.tight{padding:12px}
+.row{display:flex;align-items:center;gap:10px}
+.between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.wrap{display:flex;flex-wrap:wrap;gap:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.t-title{font-size:15px;font-weight:600;margin:0 0 10px}
+.t-sub{font-size:11px;color:var(--sub)}
+.t-body{font-size:13px}
+.muted{color:var(--sub)}
+.big{font-size:20px;font-weight:700;letter-spacing:-.5px}
+.mono{font-variant-numeric:tabular-nums}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:none;cursor:pointer;font-family:inherit;font-weight:600;font-size:13px;
+  padding:11px 16px;border-radius:var(--radius-sm);background:var(--primary);color:var(--primary-ink);
+  box-shadow:0 6px 16px rgba(192,140,101,.28);transition:transform .12s,opacity .2s}
+:root[data-theme="y2k"] .btn{border:2.5px solid #111;box-shadow:4px 4px 0 #111}
+.btn:active{transform:scale(.97)}
+.btn.block{display:flex;width:100%}
+.btn.ghost{background:var(--card2);color:var(--text);border:var(--border);box-shadow:none}
+.btn.sm{padding:8px 12px;font-size:12px}
+.btn.danger{background:var(--danger);color:#fff}
+.btn:disabled{opacity:.45;pointer-events:none}
+
+input,textarea,select{width:100%;font-family:inherit;font-size:14px;color:var(--text);
+  background:var(--card2);border:var(--border);border-radius:var(--radius-sm);padding:12px;outline:none}
+:root[data-theme="y2k"] input,:root[data-theme="y2k"] textarea,:root[data-theme="y2k"] select{border:2.5px solid #111}
+input:focus,textarea:focus,select:focus{border-color:var(--primary)}
+textarea{resize:vertical;min-height:76px}
+label.fld{display:block;margin-bottom:10px}
+label.fld>span{display:block;font-size:11px;color:var(--sub);margin-bottom:5px}
+
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;justify-content:center;
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));pointer-events:none}
+.tabbar-inner{pointer-events:auto;display:flex;width:100%;max-width:500px;
+  background:var(--card);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:var(--border);border-radius:22px;box-shadow:var(--shadow);padding:6px}
+.tab{flex:1;text-align:center;padding:9px 4px;border-radius:16px;font-size:11px;color:var(--sub);cursor:pointer;transition:.2s}
+.tab.on{background:var(--primary);color:var(--primary-ink);font-weight:700}
+:root[data-theme="y2k"] .tab.on{box-shadow:3px 3px 0 #111}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:2px 4px}
+.topbar h1{font-size:17px;margin:0;font-weight:700}
+.back{font-size:20px;cursor:pointer;padding:0 8px 0 0;line-height:1}
+
+.badge{display:inline-block;font-size:10px;padding:3px 9px;border-radius:99px;
+  background:var(--primary);color:var(--primary-ink);font-weight:700}
+.badge.gray{background:var(--card2);color:var(--sub);border:var(--border)}
+.badge.ok{background:var(--ok);color:#fff}
+.badge.warn{background:var(--danger);color:#fff}
+
+.li{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 0;border-bottom:1px dashed var(--line)}
+.li:last-child{border-bottom:none}
+.li-l{min-width:0;flex:1}
+.li-t{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-s{font-size:11px;color:var(--sub);margin-top:2px}
+
+.seg{display:flex;background:var(--card2);border:var(--border);border-radius:var(--radius-sm);padding:4px;gap:4px}
+.seg>div{flex:1;text-align:center;padding:8px 4px;border-radius:calc(var(--radius-sm) - 2px);
+  font-size:12px;color:var(--sub);cursor:pointer;transition:.2s}
+.seg>div.on{background:var(--primary);color:var(--primary-ink);font-weight:700}
+
+.acc{border:var(--border);border-radius:var(--radius-sm);background:var(--card2);margin-bottom:10px;overflow:hidden}
+.acc-h{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;cursor:pointer;font-size:13px;font-weight:600}
+.acc-b{display:none;padding:0 14px 14px}
+.acc.open .acc-b{display:block}
+.acc.open .acc-h{color:var(--primary)}
+
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:14px 0 6px}
+.pod{flex:1;text-align:center}
+.pod .bar{border-radius:var(--radius-sm) var(--radius-sm) 0 0;background:var(--card2);
+  border:var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:8px 4px;font-size:11px;overflow:hidden}
+.pod.p1 .bar{height:96px;background:linear-gradient(180deg,rgba(255,215,120,.55),var(--card2))}
+.pod.p2 .bar{height:74px}
+.pod.p3 .bar{height:58px}
+.pod .nm{font-size:11px;font-weight:700;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pod .vl{font-size:11px;color:var(--sub)}
+
+.mask{position:fixed;inset:0;background:rgba(30,24,18,.45);backdrop-filter:blur(4px);
+  z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{width:100%;max-width:420px;max-height:82vh;overflow:auto;background:var(--card);
+  backdrop-filter:var(--blur);border:var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:20px}
+:root[data-theme="y2k"] .modal{background:#fff}
+
+.fab{position:fixed;right:18px;bottom:110px;z-index:60;width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;
+  background:var(--card);border:var(--border);box-shadow:var(--shadow);opacity:.55}
+.fab:hover{opacity:1}
+
+#toast{position:fixed;left:50%;top:22px;transform:translate(-50%,-20px);z-index:999;
+  background:rgba(40,32,24,.9);color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;
+  opacity:0;transition:.25s;pointer-events:none;max-width:88vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+.empty{text-align:center;color:var(--sub);font-size:12px;padding:28px 0}
+.hr{height:1px;background:var(--line);margin:12px 0;border:none}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.scroll-x::-webkit-scrollbar{display:none}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast"></div>
+
+<script>
+/* ==================================================================
+ * 0. 配置（已为你填好专属地址和 Key）
+ * ================================================================== */
+const CONFIG = {
+  SUPABASE_URL: 'https://thoaduhgtghskretxfut.supabase.co',
+  SUPABASE_KEY: 'sb_publishable_rM9DsjFSuDd7PmnD4LP9rQ_CdvbkrD5',
+  BUCKET: 'images',
+  SUPER_PASS: '846467554jxjsjsisjidbdgujwqkjsuxhv；@',
+  PAGE_SIZE: 10
+};
+
+const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+/* ==================================================================
+ * 1. 工具
+ * ================================================================== */
+const $  = s => document.querySelector(s);
+const uid = () => (crypto.randomUUID ? crypto.randomUUID()
+                    : 'id' + Date.now() + Math.random().toString(36).slice(2, 8));
+const n  = v => (v === null || v === undefined || v === '') ? 0 : Number(v) || 0;
+const r2 = v => Math.round(n(v) * 100) / 100;
+const fmt = v => r2(v).toLocaleString('zh-CN', { maximumFractionDigits: 2 });
+const money = v => '¥' + fmt(v);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function ymd(d = new Date()) {
+  const p = x => String(x).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+function hmz(ts) {
+  if (!ts) return '';
+  const d = new Date(Number(ts)), p = x => String(x).padStart(2, '0');
+  return `${d.getMonth() + 1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function rangeOf(mode, dateStr) {
+  const d = dateStr ? new Date(dateStr + 'T00:00:00') : new Date();
+  if (mode === 'day') {
+    const s = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    return [s, s + 86400000];
+  }
+  if (mode === 'week') {
+    const dow = (d.getDay() + 6) % 7;
+    const s = new Date(d.getFullYear(), d.getMonth(), d.getDate() - dow).getTime();
+    return [s, s + 7 * 86400000];
+  }
+  const s = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+  const e = new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime();
+  return [s, e];
+}
+const genCode = (len = 6) =>
+  Array.from({ length: len }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[
+    Math.floor(Math.random() * 32)]).join('');
+const genAuthCode = () => genCode(4) + '-' + genCode(4);
+
+let toastTimer = null;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 2200);
+}
+function confirmBox(msg) { return window.confirm(msg); }
+
+const LITE = 'id,club_id,user_id,type,amount,tip,discount,rate,gross,commission,net,settled,dispatch_user_id,dispatch_amount,created_at,title';
+
+/* ==================================================================
+ * 2. 全局状态
+ * ================================================================== */
+const S = {
+  me: null, club: null, role: null, roles: [], staffRoles: {},
+  theme: 'glass', route: 'home', seg: {}, cache: {}
+};
+const SUPER_KEY = 'pc_super_ok';
+const SESSION_KEY = 'pc_session';
+
+/* ==================================================================
+ * 3. 算账核心
+ * ================================================================== */
+const Calc = {
+  tierCut(monthCount, club) {
+    if (!club || club.tier_enabled === false) return 0;
+    const t = club.tier_settings || {};
+    if (n(t.tier2_count) > 0 && monthCount >= n(t.tier2_count)) return n(t.tier2_discount);
+    if (n(t.tier1_count) > 0 && monthCount >= n(t.tier1_count)) return n(t.tier1_discount);
+    return 0;
+  },
+  report({ amount, tip, discount, baseRate, isStar, starBonus, monthCount, club }) {
+    const unit  = isStar ? n(amount) * (1 + n(starBonus) / 100) : n(amount);
+    const gross = r2((unit + n(tip)) * ((n(discount) || 10) / 10));
+    const cut   = Calc.tierCut(monthCount, club);
+    const rate  = Math.max(0, n(baseRate) - cut);
+    const commission = r2(gross * rate / 100);
+    return { gross, rate, commission, net: r2(gross - commission), tierCut: cut, unit };
+  },
+  staffCut(gross, pct) { return r2(n(gross) * n(pct) / 100); },
+  reward(tiers, value) {
+    let best = 0;
+    (tiers || []).forEach(t => { if (n(value) >= n(t.min)) best = Math.max(best, n(t.amount)); });
+    return best;
+  }
+};
+
+/* ==================================================================
+ * 4. 数据访问
+ * ================================================================== */
+const api = {
+  async login(username, password) {
+    const { data, error } = await sb.from('profiles').select('*').eq('username', username).limit(1);
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('该用户名不存在');
+    const p = data[0];
+    if (p.password && p.password !== password) throw new Error('密码错误');
+    return p;
+  },
+  async findClubByName(name) {
+    const { data, error } = await sb.from('clubs').select('*').eq('name', name).limit(1);
+    if (error) throw error;
+    return data && data[0];
+  },
+  async clubById(id) {
+    if (!id) return null;
+    const { data } = await sb.from('clubs').select('*').eq('id', id).maybeSingle();
+    return data;
+  },
+  async joinClub({ username, password, nick, clubName, code }) {
+    const club = await api.findClubByName(clubName);
+    if (!club) throw new Error('俱乐部不存在');
+    let role = null, isAuditor = false;
+    if (club.staff_code && club.staff_code === code) role = 'staff';
+    else if (club.auditor_code && club.auditor_code === code) { role = 'staff'; isAuditor = true; }
+    else if (club.code && club.code === code) role = 'pending';
+    else throw new Error('绑定码不正确');
+
+    const { data: exist } = await sb.from('profiles').select('id').eq('username', username).limit(1);
+    if (exist && exist.length) throw new Error('用户名已被占用');
+
+    const id = uid();
+    const roles = [{ club_id: club.id, role }];
+    const staff_roles = role === 'staff'
+      ? { dispatcher: false, director: false, auditor: isAuditor, promoter: false }
+      : { dispatcher: false, director: false, auditor: false, promoter: false };
+
+    const { data, error } = await sb.from('profiles').insert({
+      id, username, password, nick: nick || username,
+      role, club_id: club.id, roles,
+      current_club_id: club.id, active_role: role,
+      staff_roles, theme: 'glass', created_at: Date.now()
+    }).select('*').single();
+    if (error) throw error;
+    return data;
+  },
+  async createClub({ username, password, nick, clubName, authCode }) {
+    const code = (authCode || '').trim().toUpperCase();
+    const { data: codes, error: ce } = await sb.from('auth_codes').select('*').eq('code', code).limit(1);
+    if (ce) throw ce;
+    if (!codes || !codes.length) throw new Error('授权码不存在');
+    if (codes[0].used) throw new Error('该授权码已被使用');
+
+    const { data: exist } = await sb.from('profiles').select('id').eq('username', username).limit(1);
+    if (exist && exist.length) throw new Error('用户名已被占用');
+
+    const clubId = uid();
+    const { error: e1 } = await sb.from('clubs').insert({
+      id: clubId, name: clubName, code: genCode(),
+      staff_code: genCode(), auditor_code: genCode(),
+      owner_id: null, created_at: Date.now()
+    });
+    if (e1) throw e1;
+
+    const id = uid();
+    const roles = [{ club_id: clubId, role: 'admin' }];
+    const { data, error } = await sb.from('profiles').insert({
+      id, username, password, nick: nick || username,
+      role: 'admin', club_id: clubId, roles,
+      current_club_id: clubId, active_role: 'admin',
+      staff_roles: { dispatcher: false, director: false, auditor: false, promoter: false },
+      theme: 'glass', created_at: Date.now()
+    }).select('*').single();
+    if (error) throw error;
+
+    await sb.from('clubs').update({ owner_id: id }).eq('id', clubId);
+    await sb.from('auth_codes').update({ used: true, used_by_club_id: clubId }).eq('id', codes[0].id);
+    return data;
+  },
+  async profile(id) {
+    const { data } = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
+    return data;
+  },
+  async saveProfile(patch) {
+    const { error } = await sb.from('profiles').update(patch).eq('id', S.me.id);
+    if (error) throw error;
+    Object.assign(S.me, patch);
+  },
+  async saveClub(patch) {
+    const { error } = await sb.from('clubs').update(patch).eq('id', S.club.id);
+    if (error) throw error;
+    Object.assign(S.club, patch);
+  },
+  async monthCount(userId) {
+    const [s, e] = rangeOf('month');
+    const { count } = await sb.from('orders').select('id', { count: 'exact', head: true })
+      .eq('user_id', userId).eq('type', 'peiwan')
+      .gte('created_at', s).lt('created_at', e);
+    return count || 0;
+  },
+  async orders(clubId, from, to, extra) {
+    let q = sb.from('orders').select(LITE).eq('club_id', clubId)
+      .gte('created_at', from).lt('created_at', to);
+    if (extra && extra.userId) q = q.eq('user_id', extra.userId);
+    if (extra && extra.dispatchUserId) q = q.eq('dispatch_user_id', extra.dispatchUserId);
+    const { data, error } = await q.order('created_at', { ascending: false }).limit(2000);
+    if (error) throw error;
+    return data || [];
+  },
+  async ordersPage(clubId, page, extra) {
+    const from = page * CONFIG.PAGE_SIZE;
+    let q = sb.from('orders').select(LITE).eq('club_id', clubId);
+    if (extra && extra.userId) q = q.eq('user_id', extra.userId);
+    const { data, error } = await q.order('created_at', { ascending: false })
+      .range(from, from + CONFIG.PAGE_SIZE - 1);
+    if (error) throw error;
+    return data || [];
+  },
+  async members(clubId) {
+    const { data: all } = await sb.from('profiles')
+      .select('id,username,nick,active_role,roles,staff_roles').limit(800);
+    return (all || []).filter(p =>
+      p.current_club_id === clubId ||
+      (Array.isArray(p.roles) && p.roles.some(r => r.club_id === clubId)));
+  },
+  async stars(clubId, month) {
+    let q = sb.from('monthly_stars').select('*').eq('club_id', clubId);
+    if (month) q = q.eq('month', month);
+    const { data } = await q;
+    return data || [];
+  },
+  async uploadImage(file) {
+    const ext = (file.name || 'img.png').split('.').pop();
+    const path = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await sb.storage.from(CONFIG.BUCKET).upload(path, file);
+    if (error) throw error;
+    const { data } = sb.storage.from(CONFIG.BUCKET).getPublicUrl(path);
+    return data.publicUrl;
+  }
+};
+
+function applyTheme() { document.documentElement.dataset.theme = S.theme || 'glass'; }
+
+async function loadContext() {
+  const p = S.me;
+  S.roles = Array.isArray(p.roles) ? p.roles.slice() : [];
+  S.staffRoles = p.staff_roles || {};
+  S.theme = p.theme || 'glass';
+  applyTheme();
+
+  let clubId = p.current_club_id;
+  if (!clubId || !S.roles.some(r => r.club_id === clubId)) {
+    clubId = S.roles[0] ? S.roles[0].club_id : null;
+  }
+  S.club = clubId ? await api.clubById(clubId) : null;
+
+  const roleInClub = clubId ? S.roles.find(r => r.club_id === clubId) : null;
+  S.role = (p.active_role && roleInClub && p.active_role === roleInClub.role)
+    ? p.active_role
+    : (roleInClub ? roleInClub.role : (p.role || 'player'));
+}
+
+function defaultRoute() {
+  if (S.role === 'pending') return 'review';
+  return 'home';
+}
+
+const ROLE_NAME = { admin: '管理员', leader: '团长', vice_leader: '副团长', staff: '员工', player: '陪玩', pending: '待审陪' };
+
+const View = {
+  auth() {
+    const mode = S.cache.authMode || 'login';
+    const regTab = S.cache.regTab || 'join';
+    return `
+    <div style="padding-top:52px">
+      <div style="text-align:center;margin-bottom:26px">
+        <div style="font-size:34px">🎧</div>
+        <h1 style="font-size:22px;margin:10px 0 4px;letter-spacing:1px">陪玩俱乐部</h1>
+        <div class="t-sub">柔软陪伴 · 安心记录</div>
+      </div>
+      <div class="card">
+        <div class="seg" style="margin-bottom:16px">
+          <div class="${mode === 'login' ? 'on' : ''}" data-act="auth-mode" data-v="login">登录</div>
+          <div class="${mode === 'reg' ? 'on' : ''}" data-act="auth-mode" data-v="reg">注册</div>
+        </div>
+        ${mode === 'login' ? View._loginForm() : View._regForm(regTab)}
+      </div>
+    </div>
+    <div class="fab" data-act="super-open">🔒</div>`;
+  },
+  _loginForm() {
+    return `
+      <label class="fld"><span>用户名</span><input id="li-user" placeholder="请输入用户名" autocomplete="username"></label>
+      <label class="fld"><span>密码</span><input id="li-pass" type="password" placeholder="请输入密码" autocomplete="current-password"></label>
+      <button class="btn block" data-act="do-login" style="margin-top:6px">进入</button>
+      <div class="t-sub" style="text-align:center;margin-top:12px">首次使用请先注册</div>`;
+  },
+  _regForm(tab) {
+    return `
+      <div class="seg" style="margin-bottom:16px">
+        <div class="${tab === 'join' ? 'on' : ''}" data-act="reg-tab" data-v="join">加入俱乐部</div>
+        <div class="${tab === 'new' ? 'on' : ''}" data-act="reg-tab" data-v="new">开新俱乐部</div>
+      </div>
+      <label class="fld"><span>用户名</span><input id="rg-user" placeholder="登录账号"></label>
+      <label class="fld"><span>密码</span><input id="rg-pass" type="password" placeholder="登录密码"></label>
+      <label class="fld"><span>昵称</span><input id="rg-nick" placeholder="显示名称"></label>
+      <label class="fld"><span>俱乐部名称</span><input id="rg-club" placeholder="输入俱乐部名字"></label>
+      <label class="fld"><span>${tab === 'join' ? '绑定码（员工码 / 陪玩码 / 审核码）' : '最高管理员授权码'}</span>
+        <input id="rg-code" placeholder="${tab === 'join' ? '如 A3K9F2' : '如 A3K9-F2M8'}"></label>
+      <button class="btn block" data-act="do-register" data-v="${tab}">
+        ${tab === 'join' ? '加入' : '创建'}
+      </button>`;
+  },
+  tabsOf() {
+    const r = S.role;
+    if (['admin', 'leader', 'vice_leader', 'staff'].includes(r))
+      return [['home', '主页'], ['review', '审核'], ['flow', '流水'], ['rank', '榜单'], ['settings', '设置']];
+    if (r === 'player')
+      return [['home', '主页'], ['records', '记录'], ['flow', '流水'], ['rank', '榜单'], ['settings', '设置']];
+    return [['review', '审核'], ['requirements', '要求'], ['notice', '通知'], ['settings', '设置']];
+  },
+  shell(title, body, opts = {}) {
+    const tabs = View.tabsOf();
+    const isPending = S.role === 'pending';
+    const showBack = !!opts.back;
+    const header = showBack
+      ? `<div class="topbar"><div class="back" data-act="back">‹</div><h1>${esc(title)}</h1><div></div></div>`
+      : `<div class="topbar"><h1>${esc(title)}</h1>
+           <div class="t-sub">${esc(S.club ? S.club.name : (isPending ? '待审核' : ''))}</div></div>`;
+    return `
+      ${header}
+      ${body}
+      ${isPending && showBack ? '' : `<div class="tabbar"><div class="tabbar-inner">
+        ${tabs.map(([k, label]) => `<div class="tab ${S.route === k ? 'on' : ''}" data-act="tab" data-v="${k}">${label}</div>`).join('')}
+      </div></div>`}`;
+  },
+  async home() {
+    const c = S.cache;
+    const isBoss = ['admin', 'leader', 'vice_leader'].includes(S.role);
+    const readOnly = ['leader', 'vice_leader'].includes(S.role);
+    const isStaff = S.role === 'staff';
+    const summary = c.summary || { net: 0, gross: 0, count: 0, reward: 0, isStar: false };
+
+    const workBtns = [];
+    if (S.role === 'player' || isBoss || isStaff) workBtns.push(['report', '🎮 陪玩报备']);
+    if ((isBoss || isStaff) && S.staffRoles.dispatcher) workBtns.push(['dispatch', '📋 派单报备']);
+    if ((isBoss || isStaff) && S.staffRoles.director)  workBtns.push(['direct', '🔗 直属报备']);
+    if ((isBoss || isStaff) && S.staffRoles.promoter)  workBtns.push(['promote', '📣 外宣录入']);
+    if (isBoss && !readOnly) workBtns.push(['fine', '⚠️ 罚款']);
+    if (isBoss) workBtns.push(['allrecords', '📑 全部记录']);
+
+    return `
+      <div class="card">
+        <div class="row">
+          <div style="width:48px;height:48px;border-radius:16px;background:var(--primary);color:#fff;
+            display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700">
+            ${esc((S.me.nick || S.me.username || '?').slice(0, 1))}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="row" style="gap:8px">
+              <div style="font-size:16px;font-weight:700">${esc(S.me.nick || S.me.username)}</div>
+              <span class="badge">${ROLE_NAME[S.role] || S.role}</span>
+            </div>
+            <div class="t-sub" style="margin-top:4px">${esc(S.club ? S.club.name : '未加入俱乐部')}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="t-title">个人总结 · 本月</div>
+        <div class="grid2">
+          <div><div class="t-sub">月流水净赚</div><div class="big mono">${money(summary.net)}</div></div>
+          <div><div class="t-sub">月奖励</div><div class="big mono">${money(summary.reward)}</div></div>
+          <div><div class="t-sub">本月单量</div><div class="big mono">${summary.count}</div></div>
+          <div><div class="t-sub">头牌身份</div><div class="big">${summary.isStar ? '⭐ 是' : '—'}</div></div>
+        </div>
+        ${summary.gross ? `<div class="hr"></div><div class="between"><span class="t-sub">本月总流水</span><span class="mono">${money(summary.gross)}</span></div>` : ''}
+      </div>
+
+      ${workBtns.length ? `<div class="card">
+        <div class="t-title">工作台</div>
+        <div class="grid2">
+          ${workBtns.map(([k, l]) => `<button class="btn ghost block" data-act="go" data-v="${k}">${l}</button>`).join('')}
+        </div>
+      </div>` : ''}
+
+      <div class="card">
+        <div class="t-title">最近报备</div>
+        ${(c.recent || []).length ? c.recent.map(o => `
+          <div class="li"><div class="li-l">
+            <div class="li-t">${esc(o.title || '报备')}</div>
+            <div class="li-s">${hmz(o.created_at)} · ${esc(o.type)}</div>
+          </div><div class="mono" style="font-weight:700">${money(o.net)}</div></div>`).join('')
+          : '<div class="empty">还没有记录</div>'}
+      </div>`;
+  },
+  report() {
+    const games = (S.club && S.club.game_categories) || [];
+    const starBonus = n(S.club && S.club.star_bonus) || 15;
+    const baseRate = n(S.club && S.club.commission && S.club.commission.peiwan) || 30;
+    const isStar = (S.cache.stars || []).some(s => s.user_id === S.me.id);
+    return `
+      <div class="card">
+        <div class="t-title">🎮 陪玩报备</div>
+        ${isStar ? `<div class="badge" style="margin-bottom:10px">⭐ 本月头牌 · 单价自动 +${starBonus}%</div>` : ''}
+        <label class="fld"><span>游戏 / 项目</span>
+          <input id="rp-title" placeholder="如 王者荣耀 · 王者局 1h" list="rp-games">
+          <datalist id="rp-games">${games.map(g => `<option value="${esc(typeof g === 'string' ? g : (g.name || ''))}">`).join('')}</datalist>
+        </label>
+        <div class="grid2">
+          <label class="fld"><span>项目金额（元）</span><input id="rp-amount" type="number" inputmode="decimal" placeholder="0" value="0"></label>
+          <label class="fld"><span>加价（元）</span><input id="rp-tip" type="number" inputmode="decimal" placeholder="0" value="0"></label>
+        </div>
+        <label class="fld"><span>折扣（10 = 原价）</span><input id="rp-discount" type="number" inputmode="decimal" value="10"></label>
+        <label class="fld"><span>备注</span><textarea id="rp-note" placeholder="选填"></textarea></label>
+        <label class="fld"><span>凭证图片</span><input id="rp-image" type="file" accept="image/*"></label>
+        <div class="card tight" style="background:var(--card2);margin:12px 0">
+          <div class="between"><span class="t-sub">基础抽成率</span><span class="mono">${baseRate}%</span></div>
+          <div class="between"><span class="t-sub">阶梯减成</span><span class="mono" id="rp-cut">—</span></div>
+          <div class="between" style="margin-top:6px"><span style="font-weight:700">预计实得</span><span class="mono big" id="rp-net">¥0</span></div>
+        </div>
+        <button class="btn block" data-act="submit-report" data-v="${isStar ? 1 : 0}">提交报备</button>
+      </div>
+      <div class="card">
+        <div class="t-title">我的报备记录</div>
+        ${(S.cache.myRecords || []).length ? S.cache.myRecords.map(o => `
+          <div class="li"><div class="li-l">
+            <div class="li-t">${esc(o.title || '报备')}</div>
+            <div class="li-s">${hmz(o.created_at)} · 流水 ${money(o.gross)} · 抽成 ${o.rate}%</div>
+          </div><div class="mono" style="font-weight:700">${money(o.net)}</div></div>`).join('')
+          : '<div class="empty">暂无记录</div>'}
+      </div>`;
+  },
+  pickPlayer(kind) {
+    const label = kind === 'dispatch' ? '派单报备' : '直属报备';
+    const rateKey = kind === 'dispatch' ? 'dispatch_rate' : 'direct_rate';
+    const rate = n(S.club && S.club[rateKey]);
+    return `
+      <div class="card">
+        <div class="t-title">${label} · 抽成 ${rate}%</div>
+        <label class="fld"><span>选择陪玩</span>
+          <select id="pk-user">
+            <option value="">请选择</option>
+            ${(S.cache.players || []).map(p => `<option value="${p.id}">${esc(p.nick || p.username)}</option>`).join('')}
+          </select>
+        </label>
+        <button class="btn ghost block" data-act="load-player-orders" data-v="${kind}">拉取本月未认领单子</button>
+        <div id="pk-list" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <div class="t-title">我拉的单子</div>
+        ${(S.cache.mineStaff || []).length ? S.cache.mineStaff.map(o => `
+          <div class="li"><div class="li-l">
+            <div class="li-t">${esc(o.title || '单子')}</div>
+            <div class="li-s">${hmz(o.created_at)} · 流水 ${money(o.gross)}</div>
+          </div><div class="mono" style="font-weight:700">+${money(o.dispatch_amount)}</div></div>`).join('')
+          : '<div class="empty">暂无记录</div>'}
+      </div>`;
+  },
+  promote() {
+    const ep = (S.club && S.club.external_prices) || {};
+    const items = [['pei', '宣陪'], ['board', '宣板'], ['app1', '软件流量']];
+    return `
+      <div class="card">
+        <div class="t-title">📣 外宣录入</div>
+        ${items.map(([k, label]) => `
+          <label class="fld"><span>${label}（单价 ${money(ep[k])} / 个）</span>
+            <input id="pm-${k}" type="number" inputmode="numeric" placeholder="数量" value="0"></label>`).join('')}
+        <button class="btn block" data-act="submit-promote">提交外宣</button>
+      </div>
+      <div class="card">
+        <div class="t-title">我的外宣记录</div>
+        ${(S.cache.minePromote || []).length ? S.cache.minePromote.map(o => `
+          <div class="li"><div class="li-l">
+            <div class="li-t">${esc(o.title)}</div>
+            <div class="li-s">${hmz(o.created_at)}</div>
+          </div><div class="mono" style="font-weight:700">${money(o.net)}</div></div>`).join('')
+          : '<div class="empty">暂无记录</div>'}
+      </div>`;
+  },
+  fine() {
+    return `
+      <div class="card">
+        <div class="t-title">⚠️ 下发罚款单</div>
+        <label class="fld"><span>选择陪玩</span>
+          <select id="fn-user">
+            <option value="">请选择</option>
+            ${(S.cache.players || []).map(p => `<option value="${p.id}">${esc(p.nick || p.username)}</option>`).join('')}
+          </select>
+        </label>
+        <label class="fld"><span>罚款金额（元）</span><input id="fn-amount" type="number" inputmode="decimal" value="0"></label>
+        <label class="fld"><span>罚款原因</span><textarea id="fn-note" placeholder="必填"></textarea></label>
+        <button class="btn danger block" data-act="submit-fine">下发罚款</button>
+      </div>`;
+  },
+  allRecords() {
+    const list = S.cache.allRecords || [];
+    const readOnly = ['leader', 'vice_leader'].includes(S.role);
+    return `
+      <div class="card">
+        <div class="t-title">📑 全部报备记录</div>
+        ${list.length ? list.map(o => `
+          <div class="li">
+            <div class="li-l">
+              <div class="li-t">${esc(o.title || '报备')}</div>
+              <div class="li-s">${hmz(o.created_at)} · ${esc(o.type)} · 流水 ${money(o.gross)}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="mono" style="font-weight:700">${money(o.net)}</div>
+              ${!readOnly ? `<button class="btn sm danger" style="margin-top:6px" data-act="del-order" data-v="${o.id}">删除</button>` : ''}
+            </div>
+          </div>`).join('')
+          : '<div class="empty">暂无记录</div>'}
+        <div style="margin-top:12px"><button class="btn ghost block" data-act="more-records">加载更多</button></div>
+      </div>`;
+  },
+  records() {
+    const list = S.cache.myRecords || [];
+    return `
+      <div class="card">
+        <div class="t-title">我的报备历史</div>
+        ${list.length ? list.map(o => `
+          <div class="li"><div class="li-l">
+            <div class="li-t">${esc(o.title || '报备')}</div>
+            <div class="li-s">${hmz(o.created_at)} · 流水 ${money(o.gross)} · 抽成 ${o.rate}%</div>
+          </div><div class="mono" style="font-weight:700">${money(o.net)}</div></div>`).join('')
+          : '<div class="empty">还没有记录</div>'}
+        <div style="margin-top:12px"><button class="btn ghost block" data-act="more-my-records">加载更多</button></div>
+      </div>`;
+  },
+  review() {
+    const tab = S.seg.review || 'hall';
+    const isBoss = ['admin', 'leader', 'vice_leader'].includes(S.role);
+    const list = tab === 'hall' ? (S.cache.hall || []) : (S.cache.myReview || []);
+    return `
+      <div class="card">
+        <div class="between" style="margin-bottom:12px">
+          <div class="seg" style="flex:1">
+            <div class="${tab === 'hall' ? 'on' : ''}" data-act="seg" data-k="review" data-v="hall">大厅</div>
+            <div class="${tab === 'mine' ? 'on' : ''}" data-act="seg" data-k="review" data-v="mine">我的审核</div>
+          </div>
+          ${isBoss ? `<button class="btn sm ghost" data-act="go" data-v="reviewList" style="margin-left:8px">审核列表</button>` : ''}
+        </div>
+        ${list.length ? list.map(a => `
+          <div class="li">
+            <div class="li-l">
+              <div class="li-t">${esc(a.username || a.user_id)} · ${esc(a.game || '')}</div>
+              <div class="li-s">${esc(a.skill || '')} · ${esc(a.status)} · ${hmz(a.created_at)}</div>
+            </div>
+            <div class="row" style="gap:6px">
+              ${a.status === 'waiting' ? `<button class="btn sm" data-act="claim" data-v="${a.id}">抢单</button>` : ''}
+              ${a.status === 'reviewing' && a.auditor_id === S.me.id ? `
+                <button class="btn sm" data-act="pass" data-v="${a.id}">通过</button>
+                <button class="btn sm danger" data-act="reject" data-v="${a.id}">拒绝</button>` : ''}
+            </div>
+          </div>`).join('')
+          : '<div class="empty">暂时没有待处理的申请</div>'}
+      </div>`;
+  },
+  reviewList() {
+    const list = S.cache.reviewList || [];
+    return `<div class="card">
+      <div class="t-title">审核列表</div>
+      ${list.length ? list.map(a => `
+        <div class="li"><div class="li-l">
+          <div class="li-t">${esc(a.username || '')} · ${esc(a.game || '')}</div>
+          <div class="li-s">${esc(a.status)} · ${esc(a.auditor_id ? '审核员 ' + String(a.auditor_id).slice(0, 6) : '未分配')}</div>
+        </div></div>`).join('')
+        : '<div class="empty">暂无数据</div>'}
+    </div>`;
+  },
+  pendingApply() {
+    const my = S.cache.myApply || [];
+    const pendingOne = my.find(a => a.status === 'waiting' || a.status === 'reviewing');
+    if (pendingOne) {
+      return `<div class="card" style="text-align:center;padding:34px 16px">
+        <div style="font-size:32px">⏳</div>
+        <div class="t-title" style="margin-top:10px">正在审核中</div>
+        <div class="t-sub">游戏：${esc(pendingOne.game || '')} · 状态：${esc(pendingOne.status)}</div>
+      </div>`;
+    }
+    const games = (S.club && S.club.game_categories) || [];
+    return `<div class="card">
+      <div class="t-title">提交审核资料</div>
+      <label class="fld"><span>申请游戏</span>
+        <select id="ap-game">
+          <option value="">请选择</option>
+          ${games.map(g => { const nm = typeof g === 'string' ? g : (g.name || ''); return `<option value="${esc(nm)}">${esc(nm)}</option>`; }).join('')}
+          <option value="其他">其他</option>
+        </select></label>
+      <label class="fld"><span>技能位置</span><input id="ap-skill" placeholder="如 技术打野"></label>
+      <label class="fld"><span>微信号（必填）</span><input id="ap-wechat" placeholder="方便审核员联系"></label>
+      <label class="fld"><span>自我介绍 / 实力证明</span><textarea id="ap-content" placeholder="段位、战绩、经验"></textarea></label>
+      <label class="fld"><span>凭证图片</span><input id="ap-image" type="file" accept="image/*"></label>
+      <button class="btn block" data-act="submit-apply">提交</button>
+    </div>`;
+  },
+  requirements() {
+    const games = (S.club && S.club.game_categories) || [];
+    const sel = S.seg.reqGame || '';
+    const reqs = (S.club && S.club.requirements) || {};
+    const blocks = (sel && reqs[sel]) || [];
+    return `<div class="card">
+      <div class="t-title">审核要求</div>
+      <label class="fld"><span>选择游戏</span>
+        <select data-act="sel-req-game" id="rq-game">
+          <option value="">请选择</option>
+          ${games.map(g => { const nm = typeof g === 'string' ? g : (g.name || ''); return `<option ${nm === sel ? 'selected' : ''} value="${esc(nm)}">${esc(nm)}</option>`; }).join('')}
+        </select></label>
+      ${sel ? (blocks.length ? blocks.map(b => `
+        <div class="card tight" style="background:var(--card2)">
+          <div style="font-weight:700;font-size:13px;margin-bottom:6px">${esc(b.title || '板块')}</div>
+          <div class="t-body" style="white-space:pre-wrap;color:var(--sub)">${esc(b.content || '')}</div>
+        </div>`).join('') : '<div class="empty">该游戏暂未配置审核要求</div>') : '<div class="empty">请先选择游戏</div>'}
+    </div>`;
+  },
+  notice() {
+    const list = S.cache.myApply || [];
+    const hasPassed = list.some(a => a.status === 'passed');
+    return `<div class="card">
+      <div class="t-title">通知</div>
+      ${list.length ? list.map(a => `
+        <div class="li"><div class="li-l">
+          <div class="li-t">${esc(a.game || '')} · ${a.status === 'passed' ? '✅ 已通过' : a.status === 'rejected' ? '❌ 未通过' : '⏳ ' + esc(a.status)}</div>
+          <div class="li-s">${hmz(a.created_at)}</div>
+        </div></div>`).join('')
+        : '<div class="empty">暂无通知</div>'}
+      ${hasPassed ? `
+        <div class="hr"></div>
+        <div class="t-sub" style="margin-bottom:8px">已通过审核，请输入陪玩绑定码解锁正式身份</div>
+        <label class="fld"><input id="nt-code" placeholder="输入陪玩绑定码"></label>
+        <button class="btn block" data-act="redeem-code">解锁陪玩身份</button>` : ''}
+    </div>`;
+  },
+  flow() {
+    const tab = S.seg.flowTab || 'stat';
+    const dim = S.seg.flowDim || 'month';
+    const date = S.seg.flowDate || ymd();
+    const st = S.cache.flowStat || {};
+    return `
+      <div class="card">
+        <div class="seg" style="margin-bottom:12px">
+          <div class="${tab === 'stat' ? 'on' : ''}" data-act="seg" data-k="flowTab" data-v="stat">流水统计</div>
+          <div class="${tab === 'wage' ? 'on' : ''}" data-act="seg" data-k="flowTab" data-v="wage">工资表</div>
+        </div>
+        <div class="row" style="gap:8px">
+          <div class="seg" style="flex:1">
+            ${[['day', '日'], ['week', '周'], ['month', '月']].map(([k, l]) =>
+              `<div class="${dim === k ? 'on' : ''}" data-act="seg" data-k="flowDim" data-v="${k}">${l}</div>`).join('')}
+          </div>
+          <input type="date" id="flow-date" value="${date}" data-act="flow-date" style="width:130px;padding:8px">
+        </div>
+      </div>
+
+      ${tab === 'stat' ? `
+      <div class="card">
+        <div class="grid2">
+          <div><div class="t-sub">总单数</div><div class="big mono">${st.count || 0}</div></div>
+          <div><div class="t-sub">总流水</div><div class="big mono">${money(st.gross)}</div></div>
+          <div><div class="t-sub">团抽成</div><div class="big mono">${money(st.clubCut)}</div></div>
+          <div><div class="t-sub">员工抽成</div><div class="big mono">${money(st.staffCut)}</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="t-title">无主单归属</div>
+        <div class="between"><span class="t-sub">未被认领单子应分出的抽成（归俱乐部）</span>
+          <span class="mono big">${money(st.orphanCut)}</span></div>
+      </div>
+      <div class="card">
+        <div class="t-title">按类型统计</div>
+        ${Object.entries(st.byType || {}).map(([k, v]) => `
+          <div class="li"><div class="li-l"><div class="li-t">${esc(k)}</div>
+          <div class="li-s">${v.count} 单</div></div><div class="mono">${money(v.gross)}</div></div>`).join('') || '<div class="empty">暂无数据</div>'}
+      </div>
+      <div class="card">
+        <div class="t-title">按成员统计</div>
+        ${(st.byMember || []).map(m => `
+          <div class="li"><div class="li-l">
+            <div class="li-t">${esc(m.name)}</div>
+            <div class="li-s">${m.count} 单 · 实得 ${money(m.net)}</div>
+          </div><div class="mono">${money(m.gross)}</div></div>`).join('') || '<div class="empty">暂无数据</div>'}
+      </div>` : `
+      <div class="card">
+        <div class="grid3">
+          <div><div class="t-sub">陪玩应发</div><div class="big mono">${money(st.wagePlayer)}</div></div>
+          <div><div class="t-sub">员工应发</div><div class="big mono">${money(st.wageStaff)}</div></div>
+          <div><div class="t-sub">总应发</div><div class="big mono">${money(st.wageTotal)}</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="t-title">工资明细</div>
+        ${(st.wages || []).map(w => `
+          <div class="li"><div class="li-l">
+            <div class="li-t">${esc(w.name)} <span class="badge gray">${esc(w.role)}</span></div>
+            <div class="li-s">${w.count} 单 · 流水 ${money(w.gross)} · 罚款 ${money(w.fine)} · 已结 ${money(w.settled)}</div>
+          </div><div class="mono" style="font-weight:700">${money(w.should)}</div></div>`).join('') || '<div class="empty">暂无数据</div>'}
+        <div class="grid2" style="margin-top:14px">
+          <button class="btn ghost block" data-act="export" data-v="detail">导出明细</button>
+          <button class="btn ghost block" data-act="export" data-v="summary">导出汇总</button>
+        </div>
+      </div>`}`;
+  },
+  rank() {
+    const dim = S.seg.rankDim || 'month';
+    const type = S.seg.rankType || 'gross';
+    const types = [['gross', '流水榜'], ['count', '单量榜'], ['net', '实得榜'], ['gift', '礼物榜'],
+      ['star', '头牌榜'], ['progress', '进步榜'], ['fine', '罚款榜'], ['active', '活跃榜']];
+    const list = S.cache.rank || [];
+    const top3 = list.slice(0, 3), rest = list.slice(3);
+    return `
+      <div class="card">
+        <div class="seg" style="margin-bottom:10px">
+          ${[['day', '日榜'], ['week', '周榜'], ['month', '月榜']].map(([k, l]) =>
+            `<div class="${dim === k ? 'on' : ''}" data-act="seg" data-k="rankDim" data-v="${k}">${l}</div>`).join('')}
+        </div>
+        <div class="scroll-x"><div class="row" style="gap:8px;padding-bottom:4px">
+          ${types.map(([k, l]) => `<button class="btn sm ${type === k ? '' : 'ghost'}" data-act="seg" data-k="rankType" data-v="${k}" style="white-space:nowrap">${l}</button>`).join('')}
+        </div></div>
+      </div>
+      ${list.length ? `
+      <div class="card">
+        <div class="podium">
+          ${top3[1] ? `<div class="pod p2"><div class="bar"><div>🥈</div></div><div class="nm">${esc(top3[1].name)}</div><div class="vl">${fmt(top3[1].value)}</div></div>` : '<div class="pod"></div>'}
+          ${top3[0] ? `<div class="pod p1"><div class="bar"><div>🥇</div></div><div class="nm">${esc(top3[0].name)}</div><div class="vl">${fmt(top3[0].value)}</div></div>` : '<div class="pod"></div>'}
+          ${top3[2] ? `<div class="pod p3"><div class="bar"><div>🥉</div></div><div class="nm">${esc(top3[2].name)}</div><div class="vl">${fmt(top3[2].value)}</div></div>` : '<div class="pod"></div>'}
+        </div>
+        ${rest.map((r, i) => `
+          <div class="li"><div class="li-l">
+            <div class="li-t">${i + 4}. ${esc(r.name)}</div>
+          </div><div class="mono">${fmt(r.value)}</div></div>`).join('')}
+      </div>` : '<div class="card"><div class="empty">暂无榜单数据</div></div>'}
+    `;
+  },
+  settings() {
+    const isBoss = ['admin', 'leader', 'vice_leader'].includes(S.role);
+    const readOnly = ['leader', 'vice_leader'].includes(S.role);
+    const isStaff = S.role === 'staff';
+    const p = S.me, c = S.club || {};
+    return `
+      <div class="card">
+        <div class="t-title">账号资料</div>
+        <label class="fld"><span>用户名（不可修改）</span><input value="${esc(p.username)}" disabled></label>
+        <label class="fld"><span>昵称</span><input id="st-nick" value="${esc(p.nick || '')}"></label>
+        <button class="btn block sm" data-act="save-nick">保存昵称</button>
+      </div>
+
+      <div class="card">
+        <div class="t-title">身份 / 俱乐部</div>
+        ${(S.roles || []).map((r, i) => {
+          const nm = (S.cache.clubNames && S.cache.clubNames[r.club_id]) || String(r.club_id).slice(0, 8);
+          const cur = (S.club && r.club_id === S.club.id && r.role === S.role) ? '<span class="badge">当前</span>' : '';
+          return `
+          <div class="li" data-act="switch-role" data-v="${i}" style="cursor:pointer">
+            <div class="li-l">
+              <div class="li-t">${esc(ROLE_NAME[r.role] || r.role)} ${cur}</div>
+              <div class="li-s">${esc(nm)}</div>
+            </div><div>›</div>
+          </div>`;
+        }).join('')}
+        <div class="hr"></div>
+        <label class="fld"><span>加入新俱乐部</span><input id="st-join-club" placeholder="俱乐部名称"></label>
+        <label class="fld"><input id="st-join-code" placeholder="绑定码"></label>
+        <button class="btn ghost block sm" data-act="join-more">加入</button>
+      </div>
+
+      ${isStaff ? `
+      <div class="card">
+        <div class="t-title">我的工作岗位</div>
+        ${[['dispatcher', '派单员'], ['director', '直属管理'], ['auditor', '审核员'], ['promoter', '外宣员']].map(([k, l]) => `
+          <label class="li" style="cursor:pointer">
+            <div class="li-t">${l}</div>
+            <input type="checkbox" id="sr-${k}" ${S.staffRoles[k] ? 'checked' : ''} style="width:20px;height:20px;flex:0 0 auto">
+          </label>`).join('')}
+        <button class="btn block sm" style="margin-top:10px" data-act="save-staff">保存岗位</button>
+      </div>` : ''}
+
+      ${isBoss ? `
+      <div class="acc" data-acc="club">
+        <div class="acc-h" data-act="acc">🏠 俱乐部信息 <span>▾</span></div>
+        <div class="acc-b">
+          <label class="fld"><span>俱乐部名称</span><input id="cf-name" value="${esc(c.name || '')}" ${readOnly ? 'disabled' : ''}></label>
+          ${[['code', '陪玩绑定码'], ['staff_code', '员工绑定码'], ['auditor_code', '审核绑定码']].map(([k, l]) => `
+            <div class="li"><div class="li-l"><div class="li-t">${l}</div>
+            <div class="li-s mono">${esc(c[k] || '未生成')}</div></div>
+            <button class="btn sm ghost" data-act="copy" data-v="${esc(c[k] || '')}">复制</button></div>`).join('')}
+          ${!readOnly ? `
+            <button class="btn block sm" style="margin-top:10px" data-act="save-club-name">保存名称</button>
+            <button class="btn ghost block sm" style="margin-top:8px" data-act="regen-code">重新生成绑定码</button>` : ''}
+        </div>
+      </div>
+
+      <div class="acc" data-acc="biz">
+        <div class="acc-h" data-act="acc">⚙️ 业务与抽成 <span>▾</span></div>
+        <div class="acc-b">
+          <div class="grid2">
+            <label class="fld"><span>陪玩基础抽成 %</span><input id="cf-rate" type="number" value="${n(c.commission && c.commission.peiwan)}" ${readOnly ? 'disabled' : ''}></label>
+            <label class="fld"><span>派单比例 %</span><input id="cf-dispatch" type="number" value="${n(c.dispatch_rate)}" ${readOnly ? 'disabled' : ''}></label>
+            <label class="fld"><span>直属比例 %</span><input id="cf-direct" type="number" value="${n(c.direct_rate)}" ${readOnly ? 'disabled' : ''}></label>
+            <label class="fld"><span>头牌加成 %</span><input id="cf-star" type="number" value="${n(c.star_bonus)}" ${readOnly ? 'disabled' : ''}></label>
+          </div>
+          <label class="li" style="cursor:pointer"><div class="li-t">阶梯减成</div>
+            <input type="checkbox" id="cf-tier-on" ${c.tier_enabled !== false ? 'checked' : ''} ${readOnly ? 'disabled' : ''} style="width:20px;height:20px"></label>
+          <div class="grid2" style="margin-top:8px">
+            <label class="fld"><span>一档单量</span><input id="cf-t1c" type="number" value="${n(c.tier_settings && c.tier_settings.tier1_count)}" ${readOnly ? 'disabled' : ''}></label>
+            <label class="fld"><span>一档减 %</span><input id="cf-t1d" type="number" value="${n(c.tier_settings && c.tier_settings.tier1_discount)}" ${readOnly ? 'disabled' : ''}></label>
+            <label class="fld"><span>二档单量</span><input id="cf-t2c" type="number" value="${n(c.tier_settings && c.tier_settings.tier2_count)}" ${readOnly ? 'disabled' : ''}></label>
+            <label class="fld"><span>二档减 %</span><input id="cf-t2d" type="number" value="${n(c.tier_settings && c.tier_settings.tier2_discount)}" ${readOnly ? 'disabled' : ''}></label>
+          </div>
+          <div class="hr"></div>
+          <div class="t-sub" style="margin-bottom:6px">外宣单价</div>
+          <div class="grid3">
+            <label class="fld"><span>宣陪</span><input id="cf-ep1" type="number" value="${n(c.external_prices && c.external_prices.pei)}" ${readOnly ? 'disabled' : ''}></label>
+            <label class="fld"><span>宣板</span><input id="cf-ep2" type="number" value="${n(c.external_prices && c.external_prices.board)}" ${readOnly ? 'disabled' : ''}></label>
+            <label class="fld"><span>软件</span><input id="cf-ep3" type="number" value="${n(c.external_prices && c.external_prices.app1)}" ${readOnly ? 'disabled' : ''}></label>
+          </div>
+          ${!readOnly ? `<button class="btn block sm" data-act="save-biz">保存业务配置</button>` : ''}
+        </div>
+      </div>
+
+      <div class="acc" data-acc="proj">
+        <div class="acc-h" data-act="acc">🎮 项目与礼物 <span>▾</span></div>
+        <div class="acc-b">
+          <label class="fld"><span>游戏分类（每行一个）</span>
+            <textarea id="cf-games" ${readOnly ? 'disabled' : ''}>${((c.game_categories) || []).map(g => typeof g === 'string' ? g : (g.name || '')).join('\n')}</textarea></label>
+          ${!readOnly ? `<button class="btn block sm" data-act="save-games">保存游戏</button>` : ''}
+        </div>
+      </div>
+
+      <div class="acc" data-acc="member">
+        <div class="acc-h" data-act="acc">👥 成员管理 <span>▾</span></div>
+        <div class="acc-b">
+          ${(S.cache.members || []).map(m => `
+            <div class="li"><div class="li-l">
+              <div class="li-t">${esc(m.nick || m.username)}</div>
+              <div class="li-s">${esc(m.active_role || '')}</div>
+            </div>
+            ${!readOnly ? `<div class="row" style="gap:6px">
+              <button class="btn sm ghost" data-act="set-role" data-v="${m.id}:staff">员工</button>
+              <button class="btn sm ghost" data-act="set-role" data-v="${m.id}:player">陪玩</button>
+              <button class="btn sm danger" data-act="remove-member" data-v="${m.id}">移除</button>
+            </div>` : ''}
+            </div>`).join('') || '<div class="empty">暂无成员</div>'}
+        </div>
+      </div>
+
+      <div class="acc" data-acc="reward">
+        <div class="acc-h" data-act="acc">🎁 流水奖励设置 <span>▾</span></div>
+        <div class="acc-b">
+          <label class="li" style="cursor:pointer"><div class="li-t">开启奖励</div>
+            <input type="checkbox" id="rw-on" ${c.reward_config && c.reward_config.enabled ? 'checked' : ''} ${readOnly ? 'disabled' : ''} style="width:20px;height:20px"></label>
+          <div class="grid2" style="margin-top:8px">
+            <label class="fld"><span>计算方式</span>
+              <select id="rw-basis" ${readOnly ? 'disabled' : ''}>
+                <option value="net" ${c.reward_config && c.reward_config.basis === 'net' ? 'selected' : ''}>纯工资流水</option>
+                <option value="gross" ${c.reward_config && c.reward_config.basis === 'gross' ? 'selected' : ''}>单子总价</option>
+              </select></label>
+            <label class="fld"><span>周期</span>
+              <select id="rw-period" ${readOnly ? 'disabled' : ''}>
+                <option value="week" ${c.reward_config && c.reward_config.period === 'week' ? 'selected' : ''}>周</option>
+                <option value="month" ${c.reward_config && c.reward_config.period === 'month' ? 'selected' : ''}>月</option>
+              </select></label>
+          </div>
+          <label class="fld"><span>阶梯（每行：达标金额,奖励金额）</span>
+            <textarea id="rw-tiers" ${readOnly ? 'disabled' : ''}>${((c.reward_config && c.reward_config.tiers) || []).map(t => `${t.min},${t.amount}`).join('\n')}</textarea></label>
+          ${!readOnly ? `<button class="btn block sm" data-act="save-reward">保存奖励设置</button>` : ''}
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="btn ghost block" data-act="go" data-v="finePage" ${readOnly ? 'disabled' : ''}>⚠️ 罚款管理</button>
+      </div>` : ''}
+
+      <div class="card">
+        <div class="t-title">公共设置</div>
+        <div class="t-sub" style="margin-bottom:8px">主题</div>
+        <div class="seg" style="margin-bottom:14px">
+          ${[['glass', '毛玻璃'], ['y2k', 'Y2K'], ['pixel', '像素风']].map(([k, l]) =>
+            `<div class="${S.theme === k ? 'on' : ''}" data-act="theme" data-v="${k}">${l}</div>`).join('')}
+        </div>
+        <label class="fld"><span>修改密码</span><input id="st-pass" type="password" placeholder="输入新密码"></label>
+        <button class="btn ghost block sm" data-act="save-pass">保存密码</button>
+        <div class="hr"></div>
+        <button class="btn ghost block sm" data-act="contact">🎧 联系客服</button>
+        <button class="btn danger block sm" style="margin-top:8px" data-act="logout">退出登录</button>
+      </div>`;
+  },
+  superConsole() {
+    const clubs = S.cache.superClubs || [];
+    const codes = S.cache.superCodes || [];
+    return `
+      <div class="topbar"><h1>🔒 最高管理员</h1>
+        <button class="btn sm ghost" data-act="super-exit">退出</button></div>
+      <div class="card">
+        <button class="btn block" data-act="gen-auth">+ 生成新授权码</button>
+      </div>
+      <div class="card">
+        <div class="t-title">俱乐部列表（${clubs.length}）</div>
+        ${clubs.map(c => `
+          <div class="li"><div class="li-l">
+            <div class="li-t">${esc(c.name)}</div>
+            <div class="li-s mono">陪玩码 ${esc(c.code || '-')} · ${new Date(n(c.created_at)).toLocaleDateString()}</div>
+          </div><button class="btn sm danger" data-act="super-del-club" data-v="${c.id}">删除</button></div>`).join('')
+          || '<div class="empty">暂无俱乐部</div>'}
+      </div>
+      <div class="card">
+        <div class="t-title">授权码列表（${codes.length}）</div>
+        ${codes.map(c => `
+          <div class="li"><div class="li-l">
+            <div class="li-t mono">${esc(c.code)}</div>
+            <div class="li-s">${c.used ? '已使用 · ' + esc(c.used_by_club_id || '') : '未使用'}</div>
+          </div>${!c.used ? `<button class="btn sm ghost" data-act="super-del-code" data-v="${c.id}">删除</button>` : '<span class="badge gray">已用</span>'}</div>`).join('')
+          || '<div class="empty">暂无授权码</div>'}
+      </div>`;
+  }
+};
+/* ==================================================================
+ * 7. 数据准备（渲染前预取）
+ * ================================================================== */
+async function prepare() {
+  if (!S.me) return;
+
+  /* 每次补全 clubNames，防止切换身份/加入后缺失 */
+  S.cache.clubNames = S.cache.clubNames || {};
+  const roleClubIds = [...new Set((S.roles || []).map(x => x.club_id).filter(Boolean))];
+  for (const id of roleClubIds) {
+    if (!S.cache.clubNames[id]) {
+      const cl = await api.clubById(id);
+      S.cache.clubNames[id] = cl ? cl.name : '（已失效）';
+    }
+  }
+
+  /* ---------- 待审陪 ---------- */
+  if (S.role === 'pending') {
+    if (['review', 'notice'].includes(S.route)) {
+      const { data } = await sb.from('applications').select('*').eq('user_id', S.me.id);
+      S.cache.myApply = data || [];
+    }
+    return;
+  }
+
+  const clubId = S.club && S.club.id;
+  if (!clubId) return;
+
+  const r = S.route;
+  const [ms, me] = rangeOf('month');
+
+  /* ---------- 主页 ---------- */
+  if (r === 'home') {
+    const lite = await api.orders(clubId, ms, me);
+    const mine = lite.filter(o => o.user_id === S.me.id);
+    S.cache.summary = {
+      count: mine.filter(o => o.type === 'peiwan').length,
+      net: r2(mine.reduce((a, o) => a + n(o.net), 0)),
+      gross: r2(mine.reduce((a, o) => a + n(o.gross), 0)),
+      reward: 0,
+      isStar: false
+    };
+    const ym = new Date().toISOString().slice(0, 7);
+    S.cache.stars = await api.stars(clubId, ym);
+    S.cache.summary.isStar = S.cache.stars.some(s => s.user_id === S.me.id);
+
+    const rewardCfg = S.club.reward_config || {};
+    if (rewardCfg.enabled) {
+      const val = rewardCfg.basis === 'gross' ? S.cache.summary.gross : S.cache.summary.net;
+      S.cache.summary.reward = Calc.reward(rewardCfg.tiers, val);
+    }
+
+    const recent = await api.ordersPage(clubId, 0, { userId: S.me.id });
+    S.cache.recent = recent.slice(0, 3);
+    S.cache.stars = S.cache.stars || [];
+  }
+
+  /* ---------- 报备 / 记录 ---------- */
+  if (r === 'report' || r === 'records') {
+    S.cache.myRecords = await api.ordersPage(clubId, 0, { userId: S.me.id });
+    S.cache.myPage = 0;
+    if (r === 'report') {
+      const ym = new Date().toISOString().slice(0, 7);
+      if (!S.cache.stars) S.cache.stars = await api.stars(clubId, ym);
+    }
+  }
+
+  /* ---------- 派单 / 直属 / 罚款 ---------- */
+  if (['dispatch', 'direct', 'fine', 'finePage'].includes(r)) {
+    const members = await api.members(clubId);
+    S.cache.players = members.filter(m =>
+      (m.roles || []).some(x => x.club_id === clubId && x.role === 'player'));
+
+    if (r === 'dispatch' || r === 'direct') {
+      const all = await api.orders(clubId, ms, me);
+      S.cache.mineStaff = all.filter(o => o.dispatch_user_id === S.me.id);
+    }
+  }
+
+  /* ---------- 外宣 ---------- */
+  if (r === 'promote') {
+    const all = await api.orders(clubId, ms, me);
+    S.cache.minePromote = all.filter(o => o.type === 'custom' && o.user_id === S.me.id);
+  }
+
+  /* ---------- 全部记录（分页） ---------- */
+  if (r === 'allrecords') {
+    if (!S.cache.allRecords) {
+      S.cache.allRecords = await api.ordersPage(clubId, 0);
+      S.cache.allPage = 0;
+    }
+  }
+
+  /* ---------- 审核 ---------- */
+  if (r === 'review') {
+    const tab = S.seg.review || 'hall';
+    if (tab === 'hall') {
+      const { data } = await sb.from('applications').select('*')
+        .eq('club_id', clubId).eq('status', 'waiting')
+        .order('created_at', { ascending: false }).limit(100);
+      S.cache.hall = data || [];
+    } else {
+      const { data } = await sb.from('applications').select('*')
+        .eq('club_id', clubId).eq('auditor_id', S.me.id).eq('status', 'reviewing')
+        .order('created_at', { ascending: false }).limit(100);
+      S.cache.myReview = data || [];
+    }
+  }
+
+  if (r === 'reviewList') {
+    const { data } = await sb.from('applications').select('*')
+      .eq('club_id', clubId).order('created_at', { ascending: false }).limit(200);
+    S.cache.reviewList = data || [];
+  }
+
+  /* ---------- 流水 ---------- */
+  if (r === 'flow') {
+    const dim = S.seg.flowDim || 'month';
+    const date = S.seg.flowDate || ymd();
+    const [s, e] = rangeOf(dim, date);
+    const all = await api.orders(clubId, s, e);
+    if (!S.cache.members) S.cache.members = await api.members(clubId);
+    S.cache.flowStat = computeFlow(all);
+  }
+
+  /* ---------- 榜单 ---------- */
+  if (r === 'rank') {
+    const dim = S.seg.rankDim || 'month';
+    const [s, e] = rangeOf(dim, ymd());
+    const all = await api.orders(clubId, s, e);
+    if (!S.cache.members) S.cache.members = await api.members(clubId);
+    if (!S.cache.stars) {
+      const ym = new Date().toISOString().slice(0, 7);
+      S.cache.stars = await api.stars(clubId, ym);
+    }
+    S.cache.rank = computeRank(all, S.cache.members, S.seg.rankType || 'gross');
+  }
+
+  /* ---------- 设置 ---------- */
+  if (r === 'settings') {
+    if (!S.cache.members) S.cache.members = await api.members(clubId);
+  }
+}
+
+/* ==================================================================
+ * 8. 统计计算（流水 / 工资 / 榜单）
+ * ================================================================== */
+function computeFlow(orders) {
+  const st = {
+    count: 0, gross: 0, clubCut: 0, staffCut: 0, orphanCut: 0,
+    byType: {}, byMember: [], wages: [],
+    wagePlayer: 0, wageStaff: 0, wageTotal: 0
+  };
+  const memberMap = {};
+  const wageMap = {};
+  const dispatchRate = n(S.club && S.club.dispatch_rate);
+
+  orders.forEach(o => {
+    st.count++;
+    st.gross = r2(st.gross + n(o.gross));
+
+    if (o.type === 'peiwan') {
+      st.clubCut = r2(st.clubCut + n(o.commission));
+    }
+    /* 无主单：陪玩单且无人认领 */
+    if (o.type === 'peiwan' && !o.dispatch_user_id && n(o.gross) > 0) {
+      st.orphanCut = r2(st.orphanCut + Calc.staffCut(o.gross, dispatchRate));
+    }
+    /* 员工抽成（认领单已写入 dispatch_amount） */
+    if (n(o.dispatch_amount) > 0) {
+      st.staffCut = r2(st.staffCut + n(o.dispatch_amount));
+    }
+
+    /* 按类型 */
+    const t = o.type || 'other';
+    st.byType[t] = st.byType[t] || { count: 0, gross: 0 };
+    st.byType[t].count++;
+    st.byType[t].gross = r2(st.byType[t].gross + n(o.gross));
+
+    /* 按成员（流水/实得） */
+    const uidO = o.user_id;
+    if (uidO) {
+      memberMap[uidO] = memberMap[uidO] || { id: uidO, count: 0, gross: 0, net: 0 };
+      memberMap[uidO].count++;
+      memberMap[uidO].gross = r2(memberMap[uidO].gross + n(o.gross));
+      memberMap[uidO].net = r2(memberMap[uidO].net + n(o.net));
+    }
+
+    /* 工资：陪玩单 */
+    if (uidO && (o.type === 'peiwan' || o.type === 'fine')) {
+      wageMap[uidO] = wageMap[uidO] || {
+        id: uidO, role: 'player', count: 0, gross: 0,
+        fine: 0, net: 0, settled: 0, dispatch: 0, external: 0
+      };
+      if (o.type === 'peiwan') {
+        wageMap[uidO].count++;
+        wageMap[uidO].gross = r2(wageMap[uidO].gross + n(o.gross));
+        wageMap[uidO].net = r2(wageMap[uidO].net + n(o.net));
+        if (o.settled) wageMap[uidO].settled = r2(wageMap[uidO].settled + n(o.net));
+      } else {
+        wageMap[uidO].fine = r2(wageMap[uidO].fine + Math.abs(n(o.net)));
+      }
+    }
+
+    /* 工资：派单/直属 */
+    if (o.dispatch_user_id) {
+      const d = o.dispatch_user_id;
+      wageMap[d] = wageMap[d] || {
+        id: d, role: 'staff', count: 0, gross: 0,
+        fine: 0, net: 0, settled: 0, dispatch: 0, external: 0
+      };
+      wageMap[d].dispatch = r2(wageMap[d].dispatch + n(o.dispatch_amount));
+    }
+
+    /* 工资：外宣（type=custom，金额即净得） */
+    if (o.type === 'custom' && uidO) {
+      wageMap[uidO] = wageMap[uidO] || {
+        id: uidO, role: 'staff', count: 0, gross: 0,
+        fine: 0, net: 0, settled: 0, dispatch: 0, external: 0
+      };
+      wageMap[uidO].external = r2(wageMap[uidO].external + n(o.net));
+    }
+  });
+
+  st.byMember = Object.values(memberMap)
+    .sort((a, b) => b.gross - a.gross).slice(0, 30);
+
+  const nameOf = id => {
+    const m = (S.cache.members || []).find(x => x.id === id);
+    return m ? (m.nick || m.username) : String(id).slice(0, 6);
+  };
+
+  st.wages = Object.values(wageMap).map(w => {
+    const should = w.role === 'player'
+      ? r2(w.net - w.fine - w.settled)
+      : r2(w.dispatch + w.external - w.settled);
+    return {
+      name: nameOf(w.id), role: w.role === 'player' ? '陪玩' : '员工',
+      count: w.count, gross: w.gross, fine: w.fine, settled: w.settled,
+      should, _id: w.id, _role: w.role
+    };
+  }).sort((a, b) => b.should - a.should);
+
+  st.wagePlayer = r2(st.wages.filter(w => w.role === '陪玩').reduce((a, w) => a + w.should, 0));
+  st.wageStaff  = r2(st.wages.filter(w => w.role === '员工').reduce((a, w) => a + w.should, 0));
+  st.wageTotal  = r2(st.wagePlayer + st.wageStaff);
+
+  return st;
+}
+
+function computeRank(orders, members, type) {
+  const map = {};
+  const nameOf = id => {
+    const m = members.find(x => x.id === id);
+    return m ? (m.nick || m.username) : String(id).slice(0, 6);
+  };
+
+  orders.forEach(o => {
+    const id = o.user_id; if (!id) return;
+    map[id] = map[id] || { id, name: nameOf(id), gross: 0, count: 0, net: 0, gift: 0, fine: 0, active: 0 };
+    map[id].gross  = r2(map[id].gross + n(o.gross));
+    map[id].net    = r2(map[id].net + n(o.net));
+    map[id].active++;
+    if (o.type === 'peiwan') map[id].count++;
+    if (o.type === 'gift')   map[id].gift = r2(map[id].gift + n(o.gross));
+    if (o.type === 'fine')   map[id].fine = r2(map[id].fine + Math.abs(n(o.net)));
+  });
+
+  let list = Object.values(map);
+  const starIds = new Set((S.cache.stars || []).map(s => s.user_id));
+
+  if (type === 'star') {
+    list = list.filter(x => starIds.has(x.id));
+  }
+
+  const keyMap = {
+    gross: 'gross', count: 'count', net: 'net', gift: 'gift',
+    fine: 'fine', active: 'active', progress: 'gross', star: 'gross'
+  };
+  const k = keyMap[type] || 'gross';
+  list.sort((a, b) => b[k] - a[k]);
+
+  return list.map(x => ({ name: x.name, value: x[k] }))
+    .filter(x => x.value > 0).slice(0, 50);
+}
+
+/* ==================================================================
+ * 9. 渲染
+ * ================================================================== */
+async function render() {
+  const app = $('#app');
+  try {
+    /* 超管界面优先（未登录用户） */
+    if (sessionStorage.getItem(SUPER_KEY) === '1' && !S.me) {
+      app.innerHTML = View.superConsole();
+      return;
+    }
+
+    /* 未登录 → 登录页 */
+    if (!S.me) {
+      applyTheme();
+      app.innerHTML = View.auth();
+      return;
+    }
+
+    /* 已登录但俱乐部全失效 */
+    if (!S.club) {
+      applyTheme();
+      app.innerHTML = `
+        <div class="card" style="text-align:center;padding:40px 20px">
+          <div style="font-size:36px">⚠️</div>
+          <div class="t-title" style="margin-top:12px">俱乐部已失效</div>
+          <div class="t-sub" style="margin-top:6px">你当前所在的俱乐部已被删除，或尚未加入任何俱乐部</div>
+          <button class="btn danger block" style="margin-top:20px" data-act="logout">退出登录</button>
+        </div>`;
+      return;
+    }
+
+    await prepare();
+    applyTheme();
+
+    /* ---------- 待审陪界面 ---------- */
+    if (S.role === 'pending') {
+      const titles = { review: '审核', requirements: '要求', notice: '通知', settings: '设置' };
+      const r = S.route;
+      const body =
+        r === 'review' ? View.pendingApply()
+        : r === 'requirements' ? View.requirements()
+        : r === 'notice' ? View.notice()
+        : View.settings();
+      app.innerHTML = View.shell(titles[r] || '审核', body);
+      return;
+    }
+
+    /* ---------- 子页面（有 back，无底栏） ---------- */
+    const subViews = ['report', 'dispatch', 'direct', 'promote', 'fine',
+      'allrecords', 'reviewList', 'finePage'];
+    const titleMap = {
+      report: '陪玩报备', dispatch: '派单报备', direct: '直属报备', promote: '外宣录入',
+      fine: '罚款', allrecords: '全部记录', reviewList: '审核列表', finePage: '罚款管理'
+    };
+
+    if (subViews.includes(S.route)) {
+      let body = '';
+      if (S.route === 'report') body = View.report();
+      else if (S.route === 'dispatch') body = View.pickPlayer('dispatch');
+      else if (S.route === 'direct')   body = View.pickPlayer('direct');
+      else if (S.route === 'promote')  body = View.promote();
+      else if (S.route === 'fine' || S.route === 'finePage') body = View.fine();
+      else if (S.route === 'allrecords') body = View.allRecords();
+      else if (S.route === 'reviewList') body = View.reviewList();
+      app.innerHTML = View.shell(titleMap[S.route], body, { back: true });
+      return;
+    }
+
+    /* ---------- 主 tab 页面 ---------- */
+    let body = '', title = '';
+    const r = S.route;
+    if (r === 'home')          { title = '主页'; body = await View.home(); }
+    else if (r === 'records')  { title = '记录'; body = View.records(); }
+    else if (r === 'review')   { title = '审核'; body = View.review(); }
+    else if (r === 'flow')     { title = '流水'; body = View.flow(); }
+    else if (r === 'rank')     { title = '榜单'; body = View.rank(); }
+    else if (r === 'settings') { title = '设置'; body = View.settings(); }
+    else { title = '主页'; body = await View.home(); }
+
+    app.innerHTML = View.shell(title, body);
+    bindAccordion();
+    bindReportCalc();
+  } catch (e) {
+    console.error('[render]', e);
+    app.innerHTML = `<div class="card" style="text-align:center;padding:34px 20px">
+      <div style="font-size:30px">😵</div>
+      <div class="t-title" style="margin-top:10px">页面加载失败</div>
+      <div class="t-sub" style="color:var(--danger);margin-top:6px;word-break:break-all">${esc(e.message || e)}</div>
+      <button class="btn ghost" style="margin-top:16px" onclick="location.reload()">刷新重试</button>
+    </div>`;
+  }
+}
+
+/* 折叠面板状态恢复 */
+function bindAccordion() {
+  document.querySelectorAll('.acc').forEach(el => {
+    const k = el.dataset.acc;
+    if (S.cache['acc_' + k]) el.classList.add('open');
+  });
+}
+
+/* 报备页实时计算 */
+function bindReportCalc() {
+  if (S.route !== 'report') return;
+  const calcNow = () => {
+    const btn = document.querySelector('[data-act="submit-report"]');
+    const isStar = Number((btn && btn.dataset.v) || 0) === 1;
+    const amount   = n($('#rp-amount') && $('#rp-amount').value);
+    const tip      = n($('#rp-tip') && $('#rp-tip').value);
+    const discount = n($('#rp-discount') && $('#rp-discount').value) || 10;
+    const baseRate = n(S.club && S.club.commission && S.club.commission.peiwan) || 30;
+    const starBonus = n(S.club && S.club.star_bonus) || 15;
+    const monthCount = (S.cache.myRecords || []).filter(o => o.type === 'peiwan').length;
+    const res = Calc.report({
+      amount, tip, discount, baseRate, isStar, starBonus, monthCount, club: S.club
+    });
+    const cutEl = $('#rp-cut'), netEl = $('#rp-net');
+    if (cutEl) cutEl.textContent = res.tierCut ? `-${res.tierCut}%` : '—';
+    if (netEl) netEl.textContent = money(res.net);
+  };
+  ['rp-amount', 'rp-tip', 'rp-discount'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', calcNow);
+  });
+  calcNow();
+}
+
+/* ==================================================================
+ * 10. 点击事件分发
+ * ================================================================== */
+document.addEventListener('click', async (e) => {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const act = el.dataset.act;
+  const v = el.dataset.v;
+
+  try {
+    /* ---------- 登录 / 注册 ---------- */
+    if (act === 'auth-mode') { S.cache.authMode = v; render(); return; }
+    if (act === 'reg-tab')   { S.cache.regTab = v; render(); return; }
+
+    if (act === 'do-login') {
+      const u = $('#li-user').value.trim();
+      const p = $('#li-pass').value;
+      if (!u) return toast('请输入用户名');
+      const prof = await api.login(u, p);
+      S.me = prof;
+      localStorage.setItem(SESSION_KEY, prof.id);
+      S.cache = {};
+      await loadContext();
+      S.route = defaultRoute();
+      toast('欢迎回来，' + (prof.nick || prof.username));
+      render();
+      return;
+    }
+
+    if (act === 'do-register') {
+      const payload = {
+        username: $('#rg-user').value.trim(),
+        password: $('#rg-pass').value,
+        nick: $('#rg-nick').value.trim(),
+        clubName: $('#rg-club').value.trim(),
+        code: $('#rg-code').value.trim()
+      };
+      if (!payload.username || !payload.password) return toast('用户名和密码必填');
+      if (!payload.clubName) return toast('请填写俱乐部名称');
+      if (!payload.code) return toast('请填写绑定码 / 授权码');
+
+      let prof;
+      if (v === 'join') prof = await api.joinClub(payload);
+      else prof = await api.createClub({ ...payload, authCode: payload.code });
+
+      S.me = prof;
+      localStorage.setItem(SESSION_KEY, prof.id);
+      S.cache = {};
+      await loadContext();
+      S.route = defaultRoute();
+      toast('注册成功');
+      render();
+      return;
+    }
+
+    /* ---------- 超管 ---------- */
+    if (act === 'super-open') { openSuperModal(); return; }
+
+    if (act === 'super-verify') {
+      const rawPwd = $('#super-pass').value;
+      
+      // 去除所有空格和换行符
+      const cleanStr = s => s.replace(/\s/g, '');
+      // 统一标点符号：把全角分号、全角@转成半角，忽略大小写
+      const normalize = s => s.replace(/[；;]/g, ';').replace(/＠/g, '@').toLowerCase();
+      
+      const pwd = normalize(cleanStr(rawPwd));
+      const target = normalize(cleanStr(CONFIG.SUPER_PASS));
+      
+      // 只要不匹配，用 alert 强制提示
+      if (pwd !== target) {
+        alert('密码错误！\n\n你输入的长度：' + pwd.length + '\n正确长度：' + target.length + '\n请检查是否有空格或标点错误。');
+        return;
+      }
+
+      // 1. 验证通过，立刻清理普通用户环境
+      sessionStorage.setItem(SUPER_KEY, '1');
+      localStorage.removeItem(SESSION_KEY);
+      S.me = null; S.club = null; S.roles = []; S.role = null; S.route = 'home';
+      
+      // 2. 关闭弹窗，并立刻渲染超管界面（不管有没有网络数据，先让页面出来）
+      closeModal();
+      S.cache.superClubs = [];
+      S.cache.superCodes = [];
+      render();
+      
+      // 3. 异步去后台拉取数据，拉完后再刷新一次界面
+      loadSuperData().then(() => {
+        render();
+      }).catch(err => {
+        alert('已进入超管控制台，但拉取俱乐部数据失败：\n' + (err.message || '网络错误'));
+      });
+      return;
+    }
+
+    if (act === 'super-exit') {
+      sessionStorage.removeItem(SUPER_KEY);
+      S.cache.superClubs = null;
+      S.cache.superCodes = null;
+      render();
+      return;
+    }
+
+    if (act === 'gen-auth') {
+      try {
+        const code = genAuthCode();
+        const { error } = await sb.from('auth_codes').insert({
+          id: uid(), code, used: false, created_at: Date.now()
+        });
+        if (error) throw error;
+        
+        alert('授权码生成成功：' + code);
+        await loadSuperData(); // 强制重新拉取
+        render();
+      } catch (err) {
+        alert('生成失败！请检查网络或Supabase配置。\n错误信息：' + (err.message || err));
+      }
+      return;
+    }
+
+    if (act === 'super-del-club') {
+      if (!confirmBox('将彻底抹除该俱乐部及其全部数据，确定？')) return;
+      if (!confirmBox('再次确认：此操作不可恢复')) return;
+      await sb.from('orders').delete().eq('club_id', v);
+      await sb.from('applications').delete().eq('club_id', v);
+      await sb.from('monthly_stars').delete().eq('club_id', v);
+      await sb.from('profiles').delete().eq('current_club_id', v);
+      await sb.from('clubs').delete().eq('id', v);
+      toast('已删除');
+      await loadSuperData();
+      render();
+      return;
+    }
+
+    if (act === 'super-del-code') {
+      await sb.from('auth_codes').delete().eq('id', v);
+      await loadSuperData();
+      render();
+      return;
+    }
+
+    /* ---------- 导航 ---------- */
+    if (act === 'tab') {
+      S.route = v;
+      if (v === 'review') S.seg.review = S.seg.review || 'hall';
+      render();
+      return;
+    }
+    if (act === 'go')   { S.route = v; render(); return; }
+    if (act === 'back') { S.route = S.role === 'pending' ? 'review' : 'home'; render(); return; }
+
+    if (act === 'seg') {
+      S.seg[el.dataset.k] = v;
+      if (el.dataset.k === 'flowDim')  S.cache.flowStat = null;
+      if (el.dataset.k === 'rankDim' || el.dataset.k === 'rankType') S.cache.rank = null;
+      render();
+      return;
+    }
+
+    if (act === 'acc') {
+      const box = el.closest('.acc');
+      if (!box) return;
+      const k = box.dataset.acc;
+      box.classList.toggle('open');
+      S.cache['acc_' + k] = box.classList.contains('open');
+      return;
+    }
+
+    /* ---------- 主题 ---------- */
+    if (act === 'theme') {
+      S.theme = v;
+      applyTheme();
+      await api.saveProfile({ theme: v });
+      render();
+      return;
+    }
+
+    /* ---------- 设置：资料 ---------- */
+    if (act === 'save-nick') {
+      const nick = $('#st-nick').value.trim();
+      if (!nick) return toast('昵称不能为空');
+      await api.saveProfile({ nick });
+      toast('昵称已保存');
+      render();
+      return;
+    }
+
+    if (act === 'save-pass') {
+      const p = $('#st-pass').value;
+      if (!p || p.length < 4) return toast('密码至少 4 位');
+      await api.saveProfile({ password: p });
+      toast('密码已修改');
+      render();
+      return;
+    }
+
+    if (act === 'save-staff') {
+      const sr = {};
+      ['dispatcher', 'director', 'auditor', 'promoter'].forEach(k => {
+        const el2 = document.getElementById('sr-' + k);
+        sr[k] = !!(el2 && el2.checked);
+      });
+      S.staffRoles = sr;
+      await api.saveProfile({ staff_roles: sr });
+      toast('岗位已保存');
+      render();
+      return;
+    }
+
+    if (act === 'switch-role') {
+      const r = S.roles[Number(v)];
+      if (!r) return;
+      await api.saveProfile({ current_club_id: r.club_id, active_role: r.role });
+      await loadContext();
+      S.cache = { clubNames: S.cache.clubNames };
+      S.route = defaultRoute();
+      toast('已切换身份');
+      render();
+      return;
+    }
+
+    if (act === 'join-more') {
+      const cn = $('#st-join-club').value.trim();
+      const code = $('#st-join-code').value.trim();
+      if (!cn || !code) return toast('请填写完整');
+      const club = await api.findClubByName(cn);
+      if (!club) return toast('俱乐部不存在');
+      let role = null;
+      if (club.staff_code && club.staff_code === code) role = 'staff';
+      else if (club.auditor_code && club.auditor_code === code) role = 'staff';
+      else if (club.code && club.code === code) role = 'pending';
+      else return toast('绑定码不正确');
+
+      if ((S.roles || []).some(x => x.club_id === club.id)) return toast('你已在该俱乐部');
+      const roles = [...(S.roles || []), { club_id: club.id, role }];
+      await api.saveProfile({ roles });
+      S.cache.clubNames = S.cache.clubNames || {};
+      S.cache.clubNames[club.id] = club.name;
+      await loadContext();
+      toast('已加入 ' + club.name);
+      render();
+      return;
+    }
+
+    /* ---------- 俱乐部配置 ---------- */
+    if (act === 'save-club-name') {
+      const name = $('#cf-name').value.trim();
+      if (!name) return toast('名称不能为空');
+      await api.saveClub({ name });
+      S.cache.clubNames = S.cache.clubNames || {};
+      S.cache.clubNames[S.club.id] = name;
+      toast('已保存');
+      render();
+      return;
+    }
+
+    if (act === 'regen-code') {
+      if (!confirmBox('重新生成后，旧绑定码将失效。确定？')) return;
+      await api.saveClub({ code: genCode(), staff_code: genCode(), auditor_code: genCode() });
+      toast('绑定码已重新生成');
+      render();
+      return;
+    }
+
+    if (act === 'copy') {
+      try { await navigator.clipboard.writeText(v); toast('已复制'); }
+      catch { toast('复制失败，请长按选择'); }
+      return;
+    }
+
+    if (act === 'save-biz') {
+      const comm = { ...(S.club.commission || {}) };
+      comm.peiwan = n($('#cf-rate').value);
+      await api.saveClub({
+        commission: comm,
+        dispatch_rate: n($('#cf-dispatch').value),
+        direct_rate: n($('#cf-direct').value),
+        star_bonus: n($('#cf-star').value),
+        tier_enabled: $('#cf-tier-on').checked,
+        tier_settings: {
+          tier1_count: n($('#cf-t1c').value), tier1_discount: n($('#cf-t1d').value),
+          tier2_count: n($('#cf-t2c').value), tier2_discount: n($('#cf-t2d').value)
+        },
+        external_prices: {
+          pei: n($('#cf-ep1').value), board: n($('#cf-ep2').value), app1: n($('#cf-ep3').value)
+        }
+      });
+      toast('业务配置已保存');
+      render();
+      return;
+    }
+
+    if (act === 'save-games') {
+      const games = $('#cf-games').value.split('\n').map(s => s.trim()).filter(Boolean);
+      await api.saveClub({ game_categories: games });
+      toast('已保存');
+      render();
+      return;
+    }
+
+    if (act === 'save-reward') {
+      const tiers = $('#rw-tiers').value.split('\n').map(l => {
+        const [min, amount] = l.split(',').map(x => n((x || '').trim()));
+        return { min, amount };
+      }).filter(t => t.min > 0 && t.amount > 0);
+      await api.saveClub({
+        reward_config: {
+          enabled: $('#rw-on').checked,
+          basis: $('#rw-basis').value,
+          period: $('#rw-period').value,
+          tiers
+        }
+      });
+      toast('奖励设置已保存');
+      render();
+      return;
+    }
+
+    /* ---------- 成员管理 ---------- */
+    if (act === 'set-role') {
+      const [uidX, role] = v.split(':');
+      const { data: prof } = await sb.from('profiles').select('*').eq('id', uidX).maybeSingle();
+      if (!prof) return;
+      const roles = (prof.roles || []).map(r =>
+        r.club_id === S.club.id ? { ...r, role } : r);
+      if (!roles.some(r => r.club_id === S.club.id)) roles.push({ club_id: S.club.id, role });
+      const patch = { roles };
+      if (prof.current_club_id === S.club.id) patch.active_role = role;
+      await sb.from('profiles').update(patch).eq('id', uidX);
+      S.cache.members = null;
+      toast('已设置');
+      render();
+      return;
+    }
+
+    if (act === 'remove-member') {
+      if (!confirmBox('确定移除该成员？')) return;
+      const { data: prof } = await sb.from('profiles').select('*').eq('id', v).maybeSingle();
+      if (!prof) return;
+      const roles = (prof.roles || []).filter(r => r.club_id !== S.club.id);
+      await sb.from('profiles').update({ roles }).eq('id', v);
+      S.cache.members = null;
+      toast('已移除');
+      render();
+      return;
+    }
+
+    /* ---------- 退出 / 客服 ---------- */
+    if (act === 'logout') {
+      localStorage.removeItem(SESSION_KEY);
+      S.me = null; S.club = null; S.roles = []; S.role = null;
+      S.staffRoles = {}; S.cache = {}; S.route = 'home';
+      render();
+      return;
+    }
+
+    if (act === 'contact') {
+      toast('请在微信内点击右下角客服按钮联系');
+      return;
+    }
+
+    /* ---------- 报备提交 ---------- */
+    if (act === 'submit-report') {
+      const isStar = Number(v) === 1;
+      const amount   = n($('#rp-amount').value);
+      const tip      = n($('#rp-tip').value);
+      const discount = n($('#rp-discount').value) || 10;
+      const title = $('#rp-title').value.trim() || '陪玩报备';
+      const note  = $('#rp-note').value.trim();
+      const baseRate  = n(S.club && S.club.commission && S.club.commission.peiwan) || 30;
+      const starBonus = n(S.club && S.club.star_bonus) || 15;
+      const monthCount = await api.monthCount(S.me.id);
+      const res = Calc.report({
+        amount, tip, discount, baseRate, isStar, starBonus, monthCount, club: S.club
+      });
+
+      if (res.gross <= 0) return toast('请填写有效金额');
+
+      let image = null;
+      const f = $('#rp-image').files[0];
+      if (f) { toast('上传图片中…'); image = await api.uploadImage(f); }
+
+      const { error } = await sb.from('orders').insert({
+        id: uid(), club_id: S.club.id, user_id: S.me.id, type: 'peiwan',
+        title, amount, tip, discount, rate: res.rate,
+        gross: res.gross, commission: res.commission, net: res.net,
+        note, image, settled: false, created_at: Date.now()
+      });
+      if (error) throw error;
+      toast('报备成功，实得 ' + money(res.net));
+      S.cache.myRecords = null;
+      S.cache.summary = null;
+      S.route = 'home';
+      render();
+      return;
+    }
+
+    /* ---------- 派单 / 直属 ---------- */
+    if (act === 'load-player-orders') {
+      const uidX = $('#pk-user').value;
+      if (!uidX) return toast('请先选择陪玩');
+      const [s, e] = rangeOf('month');
+      const list = await api.orders(S.club.id, s, e, { userId: uidX });
+      const rate = n(S.club[v === 'dispatch' ? 'dispatch_rate' : 'direct_rate']);
+      const unclaimed = list.filter(o => o.type === 'peiwan' && !o.dispatch_user_id);
+
+      $('#pk-list').innerHTML = unclaimed.length
+        ? unclaimed.map(o => `
+          <label class="li" style="cursor:pointer">
+            <div class="li-l">
+              <div class="li-t">${esc(o.title || '单子')}</div>
+              <div class="li-s">${hmz(o.created_at)} · 总价 ${money(o.gross)} · 抽成 ${money(Calc.staffCut(o.gross, rate))}</div>
+            </div>
+            <input type="checkbox" class="pk-chk" value="${o.id}"
+                   data-gross="${n(o.gross)}"
+                   style="width:20px;height:20px;flex:0 0 auto">
+          </label>`).join('') + `
+          <div class="hr"></div>
+          <div class="between"><span class="t-sub">已选抽成合计</span>
+            <span class="mono big" id="pk-sum">¥0</span></div>
+          <button class="btn block" style="margin-top:10px"
+                  data-act="submit-staff-orders" data-v="${v}" data-rate="${rate}">确认认领</button>`
+        : '<div class="empty">该陪玩本月暂无可认领的单子</div>';
+
+      document.querySelectorAll('.pk-chk').forEach(chk => {
+        chk.addEventListener('change', () => {
+          let sum = 0;
+          document.querySelectorAll('.pk-chk:checked').forEach(x => {
+            sum += Calc.staffCut(x.dataset.gross, rate);
+          });
+          const el2 = $('#pk-sum'); if (el2) el2.textContent = money(sum);
+        });
+      });
+      return;
+    }
+
+    if (act === 'submit-staff-orders') {
+      const rate = n(el.dataset.rate);
+      const ids = [...document.querySelectorAll('.pk-chk:checked')].map(x => x.value);
+      if (!ids.length) return toast('请先勾选单子');
+      let total = 0, okCount = 0;
+      for (const oid of ids) {
+        const { data: od } = await sb.from('orders')
+          .select('id,gross,dispatch_user_id').eq('id', oid).maybeSingle();
+        if (!od || od.dispatch_user_id) continue;
+        const amt = Calc.staffCut(od.gross, rate);
+        const { error } = await sb.from('orders')
+          .update({ dispatch_user_id: S.me.id, dispatch_amount: amt })
+          .eq('id', oid).is('dispatch_user_id', null);
+        if (!error) { total += amt; okCount++; }
+      }
+      toast(`认领 ${okCount} 单，抽成 ${money(total)}`);
+      S.cache.mineStaff = null;
+      S.route = 'home';
+      render();
+      return;
+    }
+
+    /* ---------- 外宣提交 ---------- */
+    if (act === 'submit-promote') {
+      const ep = (S.club && S.club.external_prices) || {};
+      const items = [['pei', '宣陪'], ['board', '宣板'], ['app1', '软件流量']];
+      const rows = items.map(([k, l]) => ({ k, l, q: n($('#pm-' + k).value) }))
+        .filter(x => x.q > 0);
+      if (!rows.length) return toast('请填写数量');
+      for (const r of rows) {
+        const amt = r2(r.q * n(ep[r.k]));
+        await sb.from('orders').insert({
+          id: uid(), club_id: S.club.id, user_id: S.me.id, type: 'custom',
+          title: `${r.l} × ${r.q}`, amount: amt, tip: 0, discount: 10, rate: 0,
+          gross: amt, commission: 0, net: amt,
+          note: '', image: null, settled: false, created_at: Date.now()
+        });
+      }
+      toast('外宣已提交');
+      S.route = 'home';
+      render();
+      return;
+    }
+
+    /* ---------- 罚款 ---------- */
+    if (act === 'submit-fine') {
+      const uidX = $('#fn-user').value;
+      const amt  = n($('#fn-amount').value);
+      const note = $('#fn-note').value.trim();
+      if (!uidX) return toast('请选择陪玩');
+      if (amt <= 0) return toast('请输入罚款金额');
+      if (!note) return toast('请填写罚款原因');
+      await sb.from('orders').insert({
+        id: uid(), club_id: S.club.id, user_id: uidX, type: 'fine',
+        title: '罚款：' + note, amount: amt, tip: 0, discount: 10, rate: 0,
+        gross: amt, commission: 0, net: -amt,
+        note, image: null, settled: false, created_at: Date.now()
+      });
+      toast('罚款已下发');
+      S.route = 'home';
+      render();
+      return;
+    }
+
+    /* ---------- 全部记录删除 / 分页 ---------- */
+    if (act === 'del-order') {
+      if (!confirmBox('确定删除该记录？')) return;
+      await sb.from('orders').delete().eq('id', v);
+      S.cache.allRecords = null; S.cache.allPage = 0;
+      toast('已删除');
+      render();
+      return;
+    }
+
+    if (act === 'more-records') {
+      const page = (S.cache.allPage ?? 0) + 1;
+      const more = await api.ordersPage(S.club.id, page);
+      S.cache.allRecords = [...(S.cache.allRecords || []), ...more];
+      S.cache.allPage = page;
+      render();
+      return;
+    }
+
+    if (act === 'more-my-records') {
+      const page = (S.cache.myPage ?? 0) + 1;
+      const more = await api.ordersPage(S.club.id, page, { userId: S.me.id });
+      S.cache.myRecords = [...(S.cache.myRecords || []), ...more];
+      S.cache.myPage = page;
+      render();
+      return;
+    }
+
+    /* ---------- 审核 ---------- */
+    if (act === 'claim') {
+      const { error } = await sb.from('applications')
+        .update({ status: 'reviewing', auditor_id: S.me.id })
+        .eq('id', v).eq('status', 'waiting');
+      if (error) toast(error.message); else toast('已接单');
+      S.cache.hall = null; S.cache.myReview = null;
+      render();
+      return;
+    }
+
+    if (act === 'pass') {
+      const { data: app } = await sb.from('applications').select('*').eq('id', v).maybeSingle();
+      if (!app) return;
+      await sb.from('applications').update({ status: 'passed' }).eq('id', v);
+
+      /* 自动升级用户在该俱乐部的角色为 player */
+      const { data: prof } = await sb.from('profiles').select('*').eq('id', app.user_id).maybeSingle();
+      if (prof) {
+        const roles = (prof.roles || []).map(r =>
+          r.club_id === app.club_id ? { ...r, role: 'player' } : r);
+        if (!roles.some(r => r.club_id === app.club_id))
+          roles.push({ club_id: app.club_id, role: 'player' });
+        const patch = { roles };
+        if (prof.current_club_id === app.club_id) patch.active_role = 'player';
+        await sb.from('profiles').update(patch).eq('id', app.user_id);
+      }
+
+      /* 弹窗展示陪玩绑定码 */
+      const clubCode = (S.club && S.club.code) || '';
+      showModal(`
+        <div class="t-title" style="text-align:center">✅ 审核已通过</div>
+        <div class="t-body" style="margin:10px 0;text-align:center">
+          请将以下【陪玩绑定码】发送给该用户
+        </div>
+        <div class="card tight mono"
+             style="font-size:22px;text-align:center;letter-spacing:3px;padding:18px">
+          ${esc(clubCode)}
+        </div>
+        <div class="t-sub" style="margin:12px 0;text-align:center">
+          用户输入后即可解锁正式陪玩身份
+        </div>
+        <div class="grid2" style="margin-top:12px">
+          <button class="btn ghost" data-act="modal-close">关闭</button>
+          <button class="btn" data-act="copy" data-v="${esc(clubCode)}">复制绑定码</button>
+        </div>`);
+
+      S.cache.hall = null; S.cache.myReview = null; S.cache.reviewList = null;
+      render();
+      return;
+    }
+
+    if (act === 'reject') {
+      await sb.from('applications').update({ status: 'rejected' }).eq('id', v);
+      toast('已拒绝');
+      S.cache.hall = null; S.cache.myReview = null; S.cache.reviewList = null;
+      render();
+      return;
+    }
+
+    /* ---------- 待审陪提交 ---------- */
+    if (act === 'submit-apply') {
+      const game    = $('#ap-game').value;
+      const skill   = $('#ap-skill').value.trim();
+      const wechat  = $('#ap-wechat').value.trim();
+      const content = $('#ap-content').value.trim();
+      if (!game) return toast('请选择申请游戏');
+      if (!wechat) return toast('微信号必填');
+
+      let image = null;
+      const f = $('#ap-image').files[0];
+      if (f) { toast('上传中…'); image = await api.uploadImage(f); }
+
+      await sb.from('applications').insert({
+        id: uid(), club_id: S.club.id, user_id: S.me.id,
+        username: S.me.nick || S.me.username,
+        game, skill, wechat_id: wechat, content, image,
+        status: 'waiting', auditor_id: null, created_at: Date.now()
+      });
+      toast('已提交，等待审核');
+      S.cache.myApply = null;
+      render();
+      return;
+    }
+
+    /* ---------- 待审陪解锁绑定码 ---------- */
+    if (act === 'redeem-code') {
+      const code = $('#nt-code').value.trim();
+      if (!code) return toast('请输入绑定码');
+      if (!S.club || code !== S.club.code) return toast('绑定码不正确');
+
+      const roles = (S.roles || []).map(r =>
+        r.club_id === S.club.id ? { ...r, role: 'player' } : r);
+      if (!roles.some(r => r.club_id === S.club.id))
+        roles.push({ club_id: S.club.id, role: 'player' });
+
+      await api.saveProfile({ roles, active_role: 'player' });
+      await loadContext();
+      S.cache = { clubNames: S.cache.clubNames };
+      toast('🎉 已解锁正式陪玩身份');
+      S.route = 'home';
+      render();
+      return;
+    }
+
+    /* ---------- 导出 Excel ---------- */
+    if (act === 'export') {
+      const st = S.cache.flowStat;
+      if (!st) return toast('暂无数据');
+      if (v === 'detail') {
+        exportExcel('工资明细',
+          ['成员', '身份', '单数', '流水', '罚款', '已结', '应发'],
+          st.wages.map(w => [w.name, w.role, w.count, w.gross, w.fine, w.settled, w.should]));
+      } else {
+        exportExcel('工资汇总',
+          ['陪玩应发', '员工应发', '总应发'],
+          [[st.wagePlayer, st.wageStaff, st.wageTotal]]);
+      }
+      return;
+    }
+
+    /* ---------- 弹窗关闭 ---------- */
+    if (act === 'modal-close') { closeModal(); return; }
+
+  } catch (err) {
+    console.error('[click]', err);
+    toast(err.message || '操作失败');
+  }
+});
+
+/* ==================================================================
+ * 11. change 事件
+ * ================================================================== */
+document.addEventListener('change', async (e) => {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const act = el.dataset.act;
+
+  if (act === 'sel-req-game') {
+    S.seg.reqGame = el.value;
+    render();
+    return;
+  }
+  if (act === 'flow-date') {
+    S.seg.flowDate = el.value;
+    S.cache.flowStat = null;
+    render();
+    return;
+  }
+});
+
+/* ==================================================================
+ * 12. 弹窗 / 导出 / 超管数据
+ * ================================================================== */
+function showModal(html) {
+  closeModal();
+  const m = document.createElement('div');
+  m.className = 'mask';
+  m.id = 'modal-mask';
+  m.innerHTML = `<div class="modal">${html}</div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', ev => { if (ev.target === m) closeModal(); });
+}
+function closeModal() {
+  const m = document.getElementById('modal-mask');
+  if (m) m.remove();
+}
+
+function openSuperModal() {
+  showModal(`
+    <div class="t-title">🔒 最高管理员</div>
+    <div class="t-sub" style="margin-bottom:14px">此入口不隶属于任何俱乐部</div>
+    <label class="fld"><span>最高权限密码</span>
+      <input id="super-pass" type="password" placeholder="请输入密码"></label>
+    <div class="grid2" style="margin-top:14px">
+      <button class="btn ghost" data-act="modal-close">取消</button>
+      <button class="btn" data-act="super-verify">进入</button>
+    </div>`);
+}
+
+async function loadSuperData() {
+  try {
+    const { data: clubs, error: e1 } = await sb.from('clubs')
+      .select('id,name,code,staff_code,auditor_code,created_at')
+      .order('created_at', { ascending: false }).limit(500);
+    if (e1) throw e1;
+    
+    const { data: codes, error: e2 } = await sb.from('auth_codes')
+      .select('*').order('created_at', { ascending: false }).limit(500);
+    if (e2) throw e2;
+
+    S.cache.superClubs = clubs || [];
+    S.cache.superCodes = codes || [];
+  } catch (err) {
+    console.error("拉取超管数据失败:", err);
+    throw new Error("拉取失败。请确认 CONFIG 里的 SUPABASE_URL 是否正确，以及是否执行了全部建表 SQL。原报错: " + err.message);
+  }
+}
+
+function exportExcel(name, head, rows) {
+  const e2 = s => String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
+    xmlns:x="urn:schemas-microsoft-com:office:excel"
+    xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head>
+    <body><table border="1">`;
+  html += '<tr>' + head.map(h => `<th>${e2(h)}</th>`).join('') + '</tr>';
+  rows.forEach(r => {
+    html += '<tr>' + r.map(c => `<td>${e2(c)}</td>`).join('') + '</tr>';
+  });
+  html += '</table></body></html>';
+
+  const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${name}_${ymd()}.xls`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 600);
+  toast('已导出：' + a.download);
+}
+
+/* ==================================================================
+ * 13. 修复 View.shell 的 back 页隐藏底栏
+ *     （直接覆盖第一段定义，仅影响有 back 的子页面）
+ * ================================================================== */
+View.shell = function (title, body, opts = {}) {
+  const tabs = View.tabsOf();
+  const showBack = !!opts.back;
+  const header = showBack
+    ? `<div class="topbar"><div class="back" data-act="back">‹</div><h1>${esc(title)}</h1><div></div></div>`
+    : `<div class="topbar"><h1>${esc(title)}</h1>
+         <div class="t-sub">${esc(S.club ? S.club.name : (S.role === 'pending' ? '待审核' : ''))}</div></div>`;
+  return `
+    ${header}
+    ${body}
+    ${showBack ? '' : `<div class="tabbar"><div class="tabbar-inner">
+      ${tabs.map(([k, label]) =>
+        `<div class="tab ${S.route === k ? 'on' : ''}" data-act="tab" data-v="${k}">${label}</div>`).join('')}
+    </div></div>`}`;
+};
+
+/* ==================================================================
+ * 14. 启动
+ * ================================================================== */
+async function init() {
+  applyTheme();
+
+  try {
+    /* 超管会话：优先 */
+    if (sessionStorage.getItem(SUPER_KEY) === '1' && !localStorage.getItem(SESSION_KEY)) {
+      await loadSuperData();
+      render();
+      return;
+    }
+
+    /* 恢复普通会话 */
+    const sid = localStorage.getItem(SESSION_KEY);
+    if (sid) {
+      const prof = await api.profile(sid);
+      if (prof) {
+        S.me = prof;
+        await loadContext();
+        S.route = defaultRoute();
+      } else {
+        localStorage.removeItem(SESSION_KEY);
+      }
+    }
+  } catch (e) {
+    console.error('[init]', e);
+  }
+
+  render();
+}
+
+init();
+
+/* ==================================================================
+ * END
+ * ================================================================== */
+</script>
+</body>
+</html>
