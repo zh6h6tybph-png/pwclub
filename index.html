@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>俱乐部管理系统</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;background:#d9d3c8;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:14px;color:#4a423a;}
+@media(max-width:520px){body{padding:0;}}
+.phone{width:100%;max-width:400px;height:min(820px,calc(100dvh - 28px));min-height:560px;position:relative;overflow:hidden;border-radius:36px;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.25);background:var(--bg);transition:background .3s;}
+@media(max-width:520px){.phone{max-width:100%;height:100dvh;border-radius:0;box-shadow:none;}}
+:root{--bg:#f5f2eb;--card:rgba(255,255,255,.66);--card-border:rgba(255,255,255,.92);--text:#4a423a;--text-sub:#8b8178;--text-mute:#b3aaa1;--primary:#c08c65;--primary-soft:rgba(192,140,101,.13);--line:rgba(0,0,0,.06);--shadow:0 10px 30px rgba(180,160,140,.14);--radius:26px;--input-bg:rgba(255,255,255,.78);}
+.phone.theme-y2k{--bg:#ffe8f0;--card:#fff;--card-border:#000;--text:#111;--text-sub:#555;--text-mute:#888;--primary:#ff5c8a;--primary-soft:rgba(255,92,138,.16);--line:rgba(0,0,0,.12);--shadow:5px 5px 0 #000;--radius:14px;--input-bg:#fff;background-color:#ffe8f0;background-image:linear-gradient(rgba(255,92,138,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(255,92,138,.16) 1px,transparent 1px);background-size:24px 24px;}
+.phone.theme-pixel{--bg:#2e2018;--card:#f7e7c8;--card-border:#5c3a21;--text:#2d1f14;--text-sub:#6b4f36;--text-mute:#a08464;--primary:#8f563b;--primary-soft:#ead7b3;--line:#d8c3a0;--shadow:5px 5px 0 #4a2f1b;--radius:0px;--input-bg:#fffaf0;background-color:#2e2018;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 2px,transparent 2px 4px),repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 2px,transparent 2px 4px);border-radius:10px;font-family:"Courier New",Courier,monospace;}
+.orbs{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+.orbs i{position:absolute;border-radius:50%;filter:blur(58px);opacity:.75;}
+.orbs i:nth-child(1){width:280px;height:280px;background:#f3d9c4;top:-70px;left:-70px;}
+.orbs i:nth-child(2){width:250px;height:250px;background:#e7dfd2;bottom:90px;right:-90px;}
+.orbs i:nth-child(3){width:200px;height:200px;background:#f8e9d9;bottom:-60px;left:20px;}
+.phone.theme-y2k .orbs,.phone.theme-pixel .orbs{display:none;}
+.screen{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;min-height:0;}
+.topbar{display:flex;align-items:center;height:56px;padding:0 12px;flex-shrink:0;gap:6px;}
+.tb-back{width:34px;height:34px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--text);font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding-bottom:4px;}
+.tb-back.ghost{visibility:hidden;}
+.tb-title{flex:1;text-align:center;font-size:15.5px;font-weight:600;letter-spacing:.5px;}
+.tb-right{min-width:34px;display:flex;justify-content:flex-end;}
+.tb-btn{border:none;background:var(--primary);color:#fff;font-size:11.5px;padding:7px 11px;border-radius:12px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.pending-topbar{display:flex;gap:6px;padding:0 12px;height:56px;align-items:center;flex-shrink:0;}
+.pt-tab{flex:1;border:1px solid var(--card-border);background:var(--card);color:var(--text-sub);padding:8px 0;border-radius:12px;font-size:12px;cursor:pointer;font-family:inherit;}
+.pt-tab.on{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:700;}
+.app{flex:1;overflow-y:auto;overflow-x:hidden;padding:2px 13px 24px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.app::-webkit-scrollbar{display:none;}
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:15px;margin-bottom:13px;box-shadow:var(--shadow);}
+.card-title{font-size:13.5px;font-weight:600;margin-bottom:11px;letter-spacing:.4px;}
+.sec-title{font-size:12.5px;color:var(--text-sub);font-weight:600;margin:15px 4px 9px;letter-spacing:.4px;}
+.tabbar{display:flex;height:62px;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom);background:var(--card);border-top:1px solid var(--card-border);}
+.tab{flex:1;border:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--text-mute);font-family:inherit;}
+.tab.on{color:var(--primary);}
+.tab-ico{font-size:17px;line-height:1;}
+.tab-txt{font-size:10px;letter-spacing:.4px;}
+.tab.on .tab-txt{font-weight:700;}
+.login{min-height:100%;display:flex;flex-direction:column;position:relative;padding:38px 4px 78px;}
+.login-hero{text-align:center;margin-bottom:22px;}
+.login-logo{width:76px;height:76px;margin:0 auto 13px;border-radius:25px;background:linear-gradient(140deg,#f0d3ba,#e3c1a5);display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 14px 30px rgba(192,140,101,.28);}
+.login-hero h1{margin:0 0 7px;font-size:21px;font-weight:600;letter-spacing:2px;}
+.login-hero p{margin:0;font-size:11px;color:var(--text-sub);letter-spacing:1.4px;}
+.login-register{text-align:center;font-size:12px;color:var(--text-mute);margin-top:12px;cursor:pointer;}
+.login-register b{color:var(--primary);}
+.chip{border:1px solid var(--card-border);background:var(--card);color:var(--text-sub);padding:7px 12px;border-radius:20px;font-size:11px;cursor:pointer;font-family:inherit;}
+.chip.on{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;}
+.lock{position:absolute;right:0;bottom:18px;width:42px;height:42px;border-radius:50%;border:1px solid var(--card-border);background:rgba(255,255,255,.45);font-size:16px;opacity:.55;cursor:pointer;}
+.input{width:100%;border:1px solid transparent;background:var(--input-bg);border-radius:13px;padding:11px 13px;font-size:13.5px;color:var(--text);font-family:inherit;outline:none;margin-bottom:9px;}
+.input:focus{border-color:var(--primary);}
+select.input{appearance:none;-webkit-appearance:none;}
+textarea.input{min-height:64px;resize:none;line-height:1.6;}
+.field{margin-bottom:9px;}
+.field-label{font-size:10.5px;color:var(--text-mute);margin:0 4px 5px;letter-spacing:.5px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.hint{font-size:10.5px;color:var(--text-mute);text-align:center;margin-top:9px;line-height:1.6;}
+.btn{border:none;border-radius:15px;padding:12px 16px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.4px;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-ghost{background:var(--primary-soft);color:var(--primary);}
+.btn-block{width:100%;display:block;}
+.btn-sm{padding:8px 13px;font-size:11.5px;border-radius:11px;}
+.seg{display:flex;background:var(--card);border-radius:15px;padding:3px;margin-bottom:12px;border:1px solid var(--card-border);}
+.seg-item{flex:1;text-align:center;padding:8px 0;font-size:12px;color:var(--text-sub);border-radius:11px;cursor:pointer;font-weight:500;}
+.seg-item.on{background:var(--primary);color:#fff;font-weight:600;}
+.hscroll{display:flex;gap:7px;overflow-x:auto;padding:2px 0 11px;scrollbar-width:none;}
+.hscroll::-webkit-scrollbar{display:none;}
+.hchip{flex-shrink:0;border:1px solid var(--card-border);background:var(--card);color:var(--text-sub);padding:7px 14px;border-radius:17px;font-size:11.5px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.hchip.on{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;}
+.profile{display:flex;align-items:center;gap:13px;}
+.avatar{width:54px;height:54px;border-radius:19px;display:flex;align-items:center;justify-content:center;font-size:25px;background:linear-gradient(140deg,#f6e2cf,#ecd0b6);flex-shrink:0;}
+.avatar.sm{width:40px;height:40px;font-size:19px;border-radius:13px;}
+.profile-main{flex:1;min-width:0;}
+.profile-name{font-size:15.5px;font-weight:600;margin-bottom:4px;}
+.profile-meta{font-size:11px;color:var(--text-sub);}
+.badge{font-size:9.5px;padding:5px 9px;border-radius:20px;background:var(--primary-soft);color:var(--primary);font-weight:700;white-space:nowrap;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.stat{background:var(--primary-soft);border-radius:15px;padding:11px;text-align:center;}
+.stat-num{font-size:16.5px;font-weight:700;color:var(--primary);margin-bottom:3px;}
+.stat-lbl{font-size:10px;color:var(--text-sub);letter-spacing:.3px;}
+.rect-list{display:flex;flex-direction:column;gap:9px;}
+.rect-btn{display:flex;align-items:center;gap:11px;width:100%;border:1px solid var(--card-border);background:var(--primary-soft);border-radius:16px;padding:14px 15px;cursor:pointer;font-family:inherit;color:var(--text);font-size:13.5px;text-align:left;}
+.rect-ico{font-size:18px;line-height:1;width:22px;text-align:center;}
+.rect-txt{flex:1;font-weight:600;letter-spacing:.3px;}
+.rect-arrow{color:var(--text-mute);font-size:16px;}
+.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:12.5px;border-bottom:1px solid var(--line);gap:8px;flex-wrap:wrap;}
+.row:last-child{border-bottom:none;}
+.row span{color:var(--text-sub);}
+.row b{font-weight:600;text-align:right;}
+.calc-box{background:var(--primary-soft);border-radius:15px;padding:11px 13px;margin:6px 0 13px;}
+.calc-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text-sub);}
+.calc-row b{color:var(--text);font-weight:600;}
+.calc-row.total{border-top:1px dashed var(--line);margin-top:5px;padding-top:8px;font-size:13.5px;}
+.calc-row.total b{color:var(--primary);font-size:16.5px;}
+.fold-bar{display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:9px;background:var(--input-bg);border:1px solid transparent;border-radius:13px;cursor:pointer;font-size:13px;}
+.fold-bar .fb-label{flex:1;color:var(--text);font-weight:600;}
+.fold-bar .fb-val{color:var(--primary);font-weight:700;font-size:12.5px;}
+.fold-bar .fb-arrow{color:var(--text-mute);font-size:12px;transition:.2s;}
+.fold-bar.open .fb-arrow{transform:rotate(180deg);}
+.fold-body{padding:10px 12px 12px;background:var(--primary-soft);border-radius:13px;margin-bottom:9px;}
+.num-pick{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px;}
+.num-pick button{border:1px solid var(--card-border);background:var(--card);color:var(--text);padding:8px 0;border-radius:9px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;}
+.num-pick button.on{background:var(--primary);color:#fff;border-color:var(--primary);}
+.check-line{display:flex;align-items:center;gap:9px;padding:10px 12px;background:var(--input-bg);border-radius:13px;margin-bottom:9px;cursor:pointer;font-size:12.5px;}
+.check-box{width:19px;height:19px;border-radius:6px;border:2px solid var(--text-mute);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0;}
+.check-box.on{background:var(--primary);border-color:var(--primary);}
+.upload-wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.upload-btn{border:1px dashed var(--card-border);background:var(--input-bg);color:var(--text-sub);padding:9px 14px;border-radius:11px;font-size:11.5px;cursor:pointer;font-family:inherit;}
+.img-chip{width:52px;height:52px;border-radius:11px;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;}
+.img-chip .del{position:absolute;right:-4px;top:-4px;width:16px;height:16px;border-radius:50%;background:#d9534f;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.rec-item{padding:11px 12px;border-radius:13px;margin-bottom:8px;background:var(--input-bg);border-left:3px solid transparent;}
+.rec-item.settled{border-left-color:#5a9e6f;background:rgba(90,158,111,.07);}
+.rec-line{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;}
+.rec-title{font-size:12.5px;font-weight:600;}
+.rec-net{font-size:13.5px;font-weight:700;color:var(--primary);}
+.rec-meta{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text-mute);flex-wrap:wrap;}
+.rec-tag{font-size:9.5px;padding:3px 7px;border-radius:8px;font-weight:700;}
+.rec-tag.ok{background:rgba(90,158,111,.18);color:#3d7a4f;}
+.rec-tag.no{background:rgba(192,140,101,.18);color:var(--primary);}
+.rec-note{font-size:11px;color:var(--text-sub);margin-top:5px;line-height:1.5;}
+.rec-imgs{display:flex;gap:5px;margin-top:6px;}
+.rec-img{width:34px;height:34px;border-radius:8px;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:15px;}
+.rec-del{margin-top:7px;}
+.audit-head{display:flex;align-items:center;gap:11px;margin-bottom:10px;}
+.audit-name{font-size:13.5px;font-weight:600;margin-bottom:2px;}
+.audit-sub{font-size:10.5px;color:var(--text-sub);}
+.tag{font-size:9.5px;padding:4px 8px;border-radius:11px;background:var(--primary-soft);color:var(--primary);font-weight:700;margin-left:auto;white-space:nowrap;}
+.audit-row{font-size:11.5px;color:var(--text-sub);margin-bottom:7px;}
+.audit-shot{background:var(--primary-soft);border-radius:12px;padding:14px;text-align:center;font-size:11px;color:var(--text-mute);margin-bottom:11px;}
+.audit-actions{display:flex;gap:9px;}
+.audit-actions .btn{flex:1;}
+.podium{display:flex;align-items:flex-end;gap:7px;padding:5px 0 12px;}
+.pod{flex:1;background:var(--primary-soft);border-radius:16px;padding:11px 5px;text-align:center;}
+.pod1{padding-top:24px;padding-bottom:18px;}
+.pod-av{font-size:21px;margin-bottom:5px;}
+.pod-name{font-size:11.5px;font-weight:600;margin-bottom:2px;}
+.pod-val{font-size:10.5px;color:var(--primary);font-weight:700;}
+.rank-row{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line);}
+.rank-row:last-child{border-bottom:none;}
+.rank-no{width:22px;font-size:12.5px;font-weight:700;color:var(--text-mute);text-align:center;}
+.rank-no.top{color:var(--primary);}
+.rank-name{flex:1;font-size:13px;}
+.rank-val{font-size:12.5px;font-weight:700;color:var(--primary);}
+.banner{background:var(--primary-soft);border-radius:14px;padding:10px 13px;font-size:11px;color:var(--primary);margin-bottom:12px;line-height:1.6;}
+.banner b{font-weight:700;}
+.tbl{width:100%;border-collapse:collapse;font-size:11.5px;}
+.tbl th{text-align:left;color:var(--text-mute);font-weight:500;padding:7px 3px;border-bottom:1px solid var(--line);font-size:10.5px;}
+.tbl td{padding:8px 3px;border-bottom:1px solid var(--line);color:var(--text);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl td.r,.tbl th.r{text-align:right;}
+.panel{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);margin-bottom:11px;overflow:hidden;}
+.panel-head{display:flex;justify-content:space-between;align-items:center;padding:14px 15px;font-size:13px;font-weight:600;cursor:pointer;user-select:none;}
+.panel-arrow{color:var(--text-mute);transition:.2s;font-size:11px;}
+.panel.open .panel-arrow{transform:rotate(180deg);}
+.panel-body{padding:0 15px 15px;border-top:1px solid var(--line);padding-top:13px;}
+.code-item{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.code-item:last-child{border-bottom:none;}
+.code-val{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;font-weight:700;color:var(--primary);letter-spacing:1px;}
+.code-status{font-size:9.5px;padding:3px 7px;border-radius:9px;background:var(--primary-soft);color:var(--primary);margin-left:auto;}
+.code-status.used{background:rgba(0,0,0,.06);color:var(--text-mute);}
+.empty{text-align:center;color:var(--text-mute);font-size:11.5px;padding:24px 0;}
+.toast{position:fixed;left:50%;bottom:100px;transform:translate(-50%,14px);background:rgba(50,44,38,.93);color:#fff;font-size:12px;padding:10px 18px;border-radius:14px;opacity:0;pointer-events:none;transition:.25s;z-index:999;max-width:78%;text-align:center;line-height:1.5;}
+.toast.show{opacity:1;transform:translate(-50%,0);}
+.modal-mask{position:absolute;inset:0;background:rgba(30,24,20,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:10%;}
+.modal-box{width:100%;height:80%;background:var(--card);border-radius:22px;padding:20px;display:flex;flex-direction:column;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid var(--card-border);}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:12px;text-align:center;}
+.modal-content{flex:1;font-size:12.5px;line-height:1.9;color:var(--text-sub);white-space:pre-wrap;}
+.modal-actions{display:flex;gap:9px;margin-top:14px;}
+.req-block{padding:11px 13px;background:var(--primary-soft);border-radius:13px;margin-bottom:9px;}
+.req-title{font-size:12.5px;font-weight:700;margin-bottom:5px;color:var(--primary);}
+.req-text{font-size:11.5px;color:var(--text-sub);line-height:1.6;}
+.notice-item{padding:11px 0;border-bottom:1px solid var(--line);}
+.notice-item:last-child{border-bottom:none;}
+.notice-title{font-size:12.5px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:7px;}
+.notice-dot{width:6px;height:6px;border-radius:50%;background:#d9534f;flex-shrink:0;}
+.notice-text{font-size:11px;color:var(--text-sub);line-height:1.6;}
+.notice-time{font-size:9.5px;color:var(--text-mute);margin-top:4px;}
+.post-item{display:flex;align-items:center;gap:9px;padding:10px 12px;background:var(--input-bg);border-radius:12px;margin-bottom:8px;cursor:pointer;font-size:12.5px;}
+.inline-input{width:60px;padding:7px 5px;border-radius:9px;border:1px solid var(--card-border);background:var(--input-bg);color:var(--text);font-size:12px;text-align:center;font-family:inherit;}
+.row-flex{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:9px;}
+.small-lbl{font-size:11.5px;color:var(--text-sub);}
+.tier-line{display:flex;align-items:center;gap:5px;margin-bottom:7px;flex-wrap:wrap;font-size:11.5px;color:var(--text-sub);}
+.tree-game{margin-bottom:10px;padding:10px;background:var(--primary-soft);border-radius:12px;}
+.tree-game-head{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.tree-game-name{flex:1;font-size:12.5px;font-weight:600;}
+.tree-item{margin-top:8px;margin-left:14px;padding:8px;background:var(--input-bg);border-radius:10px;}
+.tree-item-head{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.tree-item-name{flex:1;font-size:12px;font-weight:600;}
+.tree-dur{margin-top:6px;margin-left:12px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-size:11.5px;color:var(--text-sub);margin-bottom:6px;}
+.top-picker-list{display:flex;gap:7px;flex-wrap:wrap;align-content:flex-start;flex:1;overflow-y:auto;padding:6px 0;}
+.loading{text-align:center;padding:40px 0;color:var(--text-mute);font-size:12px;}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin-right:6px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+  <div class="orbs"><i></i><i></i><i></i></div>
+  <div class="screen">
+    <header class="topbar" id="topbar"></header>
+    <main class="app" id="app"></main>
+    <nav class="tabbar" id="tabbar"></nav>
+  </div>
+  <div id="modalRoot"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://thoaduhgtghskretxfut.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_rM9DsjFSuDd7PmnD4LP9rQ_CdvbkrD5';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+var ROLE_LABEL={admin:'管理员',leader:'团长',vice_leader:'副团',staff:'员工',player:'陪玩',pending:'待审陪'};
+var POST_MAP={dispatch:'派单员',direct:'直属管理',audit:'审核员',promo:'外宣员'};
+var FLOW_TIERS=[{name:'基础流量档',desc:'500-1000 浏览'},{name:'中档流量档',desc:'1000-5000 浏览'},{name:'高档流量档',desc:'5000+ 浏览'}];
+
+var S={
+  theme: localStorage.getItem('theme') || 'glass',
+  user: null, // 真实登录的用户记录
+  clubs: [], 
+  currentClub: null, // 当前俱乐部记录
+  currentRole: null,
+  page: 'login', history: [], params: {},
+  regTab: 'join', auditTab: 'hall', finTab: 'stat', finPeriod: 'month', rankPeriod: 'month', rankType: 'flow',
+  panels: {}, folds: {extra:false, discount:false}, pageIdx: 0,
+  selPlayer: null, selOrders: [], genCodes: [], allClubs: [],
+  modal: null, pendingTab: 'audit', playerPendingTab: 'audit', appStatus: 'none', standardGame: '',
+  extraVal: 0, discountVal: 10, orderSettled: false, notes: {rp:'',staff:''}, images: {rp:[],staff:[],pending:[]},
+  staffQuery: '', allQuery: '',
+  // 所有配置信息从当前俱乐部读取
+  commission: {},
+  topBonus: 15, topPlayers: [],
+  requirements: {}, reqEditGame: '王者荣耀',
+  gameTree: [],
+  
+  // 真实数据库拉取的数据
+  orders: [],
+  audits: [],
+  fines: [],
+  promos: [],
+  notices: [],
+  members: [],
+  
+  loading: false,
+  topPickerOpen: false, topPickerQuery: '', topPickerTemp: []
+};
+
+function $(s){return document.querySelector(s);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function card(html,cls){return '<div class="card '+(cls||'')+'">'+html+'</div>';}
+function secTitle(t){return '<div class="sec-title">'+t+'</div>';}
+function field(label,ph,val){return '<div class="field"><div class="field-label">'+label+'</div><input class="input" placeholder="'+ph+'" value="'+(val||'')+'"></div>';}
+function numField(label,id,val){return '<div class="field"><div class="field-label">'+label+'</div><input class="input" id="'+id+'" type="number" value="'+val+'"></div>';}
+function rowEl(l,v,cls){return '<div class="row '+(cls||'')+'"><span>'+l+'</span><b>'+v+'</b></div>';}
+
+var toastTimer;
+function toast(msg){var t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.className='toast';document.body.appendChild(t);}t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show');},2500);}
+function genCode(){var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';function pick(){var s='';for(var i=0;i<4;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}return pick()+'-'+pick()+'-'+pick()+'-'+pick();}
+function applyTheme(){var p=$('#phone');if(p)p.className='phone'+(S.theme==='y2k'?' theme-y2k':S.theme==='pixel'?' theme-pixel':'');}
+
+/* ================= 核心数据加载逻辑 ================= */
+
+async function login(username, password){
+  S.loading = true; render();
+  try{
+    const { data, error } = await db.from('profiles').select('*').eq('username', username).eq('password', password).maybeSingle();
+    if(error) throw error;
+    if(!data){ toast('用户名或密码错误'); return false; }
+    S.user = data; localStorage.setItem('uid', data.id); await bootUser(); return true;
+  }catch(e){ toast('登录失败：' + e.message); return false; } finally{ S.loading = false; }
+}
+
+async function loadCurrentUser(){
+  const uid = localStorage.getItem('uid'); if(!uid) return false;
+  const { data, error } = await db.from('profiles').select('*').eq('id', uid).maybeSingle();
+  if(error || !data) return false;
+  S.user = data; return await bootUser();
+}
+
+async function bootUser(){
+  if(!S.user) return false;
+  const roles = S.user.roles || []; const clubIds = roles.map(r => r.club_id).filter(Boolean);
+  
+  if(clubIds.length === 0){
+    S.clubs = []; S.currentClub = null; S.currentRole = S.user.active_role || null;
+    S.page = S.currentRole === 'pending' ? 'pending-audit' : 'home'; return true;
+  }
+  
+  const { data: clubs } = await db.from('clubs').select('*').in('id', clubIds);
+  S.clubs = clubs || []; 
+  const activeId = S.user.current_club_id || (S.clubs[0] && S.clubs[0].id);
+  S.currentClub = S.clubs.find(c => c.id === activeId) || S.clubs[0] || null;
+  
+  if (S.currentClub) {
+    // 最高管理员封禁俱乐部的安全机制拦截
+    const { data: authData } = await db.from('auth_codes').select('*').eq('used_by_club_id', S.currentClub.id).eq('used', true).maybeSingle();
+    if (!authData) {
+      toast('该俱乐部已被平台取消授权，请联系最高管理员');
+      S.currentClub = null; S.clubs = []; S.currentRole = null; S.page = 'home'; return true;
+    }
+
+    const activeRole = roles.find(r => r.club_id === S.currentClub.id);
+    S.currentRole = S.user.active_role || activeRole?.role || null;
+    
+    S.commission = S.currentClub.commission || { base: 20, tiered: [], top_bonus: 15, top_players: [], dispatch_rate: 8, direct_rate: 5 };
+    S.gameTree = S.commission.gameTree || [];
+    S.requirements = S.commission.requirements || {};
+  }
+  
+  S.page = 'home'; await loadHomeData(); return true;
+}
+
+async function loadHomeData(){
+  if(!S.currentClub || !S.user) return;
+  S.loading = true; render();
+  try {
+    // 1. 拉取订单 (每次 10 条)
+    const from = S.pageIdx * 10;
+    const { data: ordersData } = await db.from('orders').select('*').eq('club_id', S.currentClub.id).order('created_at', { ascending: false }).range(from, from + 9);
+    S.orders = ordersData || [];
+
+    // 2. 拉取审核
+    const { data: auditData } = await db.from('applications').select('*').eq('club_id', S.currentClub.id).order('created_at', { ascending: false });
+    S.audits = auditData || [];
+
+    // 3. 拉取成员
+    const { data: allProfiles } = await db.from('profiles').select('id,username,nick,roles,staff_roles');
+    S.members = (allProfiles || []).filter(p => (p.roles || []).some(r => r.club_id === S.currentClub.id));
+
+    // 4. 拉取罚款 (如果没有专属表，暂存入 orders 或忽略)
+    S.fines = S.orders.filter(o => o.type === '罚款');
+    
+    // 5. 拉取外宣
+    S.promos = S.orders.filter(o => o.type === '外宣');
+    
+  } catch(e) {
+    console.log(e);
+  } finally {
+    S.loading = false; render();
+  }
+}
+
+async function loadSuperData() {
+  const [authRes, clubRes] = await Promise.all([
+    db.from('auth_codes').select('*').order('created_at', { ascending: false }),
+    db.from('clubs').select('id, name')
+  ]);
+  S.genCodes = authRes.data || [];
+  S.allClubs = clubRes.data || [];
+}
+
+/* ================= 路由与渲染 ================= */
+
+function go(page,params){S.history.push({page:S.page,params:S.params});S.page=page;S.params=params||{};S.pageIdx=0;
+  if(page === 'super-console') loadSuperData().then(render);
+  else if(page === 'finance' || page === 'rank') loadHomeData();
+  else render();
+}
+function back(){var h=S.history.pop();if(h){S.page=h.page;S.params=h.params;}else{S.page=S.user?'home':'login';}S.pageIdx=0;render();}
+function switchTab(k){S.history=[];S.page=k;S.pageIdx=0;
+  if(k === 'finance' || k === 'rank') loadHomeData();
+  else render();
+}
+function tabsFor(role){if(role==='player')return [['home','主页','🏠'],['pending-hub','待审','⏳'],['finance','流水','💰'],['rank','榜单','🏆'],['settings','设置','⚙️']];return [['home','主页','🏠'],['audit','审核','🔍'],['finance','流水','💰'],['rank','榜单','🏆'],['settings','设置','⚙️']];}
+
+function render(){
+  applyTheme();
+  var p=PAGES[S.page]||PAGES.home;
+  var tb=$('#topbar');
+
+  if(p.bare){tb.style.display='none';tb.innerHTML='';tb.className='topbar';}
+  else if(S.user&&S.currentRole==='pending'){
+    tb.style.display='flex';tb.className='pending-topbar';
+    var ptMap={audit:'审核',standard:'标准',notice:'通知',settings:'设置'};var ptHtml='';var ptKeys=['audit','standard','notice','settings'];
+    for(var j=0;j<ptKeys.length;j++){var k=ptKeys[j];ptHtml+='<button class="pt-tab '+(S.pendingTab===k?'on':'')+'" data-act="pending-tab" data-v="'+k+'">'+ptMap[k]+'</button>';}
+    tb.innerHTML=ptHtml;
+  } else {
+    tb.style.display='flex';tb.className='topbar';
+    tb.innerHTML=(p.back?'<button class="tb-back" data-act="back">‹</button>':'<div class="tb-back ghost"></div>')+'<div class="tb-title">'+(p.title||'')+'</div>'+'<div class="tb-right">'+(p.right?p.right():'')+'</div>';
+  }
+
+  var app=$('#app');app.innerHTML=p.render();app.scrollTop=0;
+
+  var tbEl=$('#tabbar');
+  if(p.bare||!S.user||!S.currentClub||S.currentRole==='pending'){tbEl.style.display='none';tbEl.innerHTML='';}
+  else{
+    tbEl.style.display='flex';var tt=tabsFor(S.currentRole);var tHtml='';
+    for(var m=0;m<tt.length;m++){var t=tt[m];var on=(S.page===t[0])?'on':'';tHtml+='<button class="tab '+on+'" data-act="tab" data-v="'+t[0]+'"><span class="tab-ico">'+t[2]+'</span><span class="tab-txt">'+t[1]+'</span></button>';}
+    tbEl.innerHTML=tHtml;
+  }
+
+  renderModal();if(p.after)p.after();
+}
+
+function renderModal(){
+  var root=$('#modalRoot');
+  if(S.topPickerOpen){
+    var q=(S.topPickerQuery||'').trim();
+    var list=q?S.members.filter(function(m){return (m.nick||m.username).indexOf(q)>=0;}):S.members;
+    var chips='';
+    for(var i=0;i<list.length;i++){var n=list[i].nick||list[i].username;var on=S.topPickerTemp.indexOf(n)>=0;chips+='<button class="chip '+(on?'on':'')+'" data-act="toggle-top-temp" data-v="'+n+'">'+n+'</button>';}
+    root.innerHTML='<div class="modal-mask" data-act="close-top-picker"><div class="modal-box" onclick="event.stopPropagation()">'+
+      '<div class="modal-title">选择本月头牌（可多选）</div>'+
+      '<input class="input" id="top-picker-search" placeholder="搜索陪玩名字" value="'+q+'">'+
+      '<div class="top-picker-list" id="top-picker-chips">'+chips+'</div>'+
+      '<div class="modal-actions"><button class="btn btn-ghost btn-block" data-act="close-top-picker">取消</button><button class="btn btn-primary btn-block" data-act="confirm-top-picker">确认（'+S.topPickerTemp.length+'人）</button></div>'+
+    '</div></div>';
+    return;
+  }
+  if(!S.modal){root.innerHTML='';return;}
+  root.innerHTML='<div class="modal-mask" data-act="close-modal"><div class="modal-box" onclick="event.stopPropagation()">'+
+    '<div class="modal-title">'+S.modal.title+'</div><div class="modal-content">'+S.modal.content+'</div>'+
+    '<div class="modal-actions"><button class="btn btn-ghost btn-block" data-act="close-modal">我知道了</button>'+
+    (S.modal.action?'<button class="btn btn-primary btn-block" data-act="'+S.modal.action+'">'+S.modal.actionText+'</button>':'')+'</div></div></div>';
+}
+
+/* ================= 页面定义 ================= */
+
+var PAGES={};
+
+PAGES.login={bare:true,render:function(){
+  return '<div class="login"><div class="login-hero"><div class="login-logo">🍬</div><h1>俱乐部管理系统</h1><p>温柔陪伴 · 治愈每一刻</p></div>'+
+    card('<input class="input" id="login-user" placeholder="用户名"><input class="input" id="login-pass" type="password" placeholder="密码"><button class="btn btn-primary btn-block" data-act="do-login">登 录</button><div class="login-register" data-act="goto" data-page="register">还没有账号？<b>立即注册</b></div>')+
+    '<button class="lock" data-act="goto" data-page="super-login">🔒</button></div>';
+}};
+
+PAGES.register={title:'注册',back:true,render:function(){
+  var tab=S.regTab;
+  var baseFields = field('用户名','登录账号') + field('密码','登录密码','') + field('昵称','显示名称','');
+  return '<div class="seg"><div class="seg-item '+(tab==='join'?'on':'')+'" data-act="regtab" data-v="join">加入俱乐部</div><div class="seg-item '+(tab==='new'?'on':'')+'" data-act="regtab" data-v="new">开新俱乐部</div></div>'+
+  (tab==='join'?card(baseFields + field('俱乐部名称','例如：王者俱乐部')+field('绑定码','员工码 / 陪玩码')+'<button class="btn btn-primary btn-block" data-act="do-join">提交加入</button>')
+  :card(baseFields + field('俱乐部名称','给你的俱乐部起个名字')+field('最高管理员授权码','8位/16位字符')+'<button class="btn btn-primary btn-block" data-act="do-new-club">创建俱乐部</button>'));
+}};
+
+function recItem(o,showDelete){
+  var timeStr = o.created_at ? new Date(o.created_at).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+  return '<div class="rec-item '+(o.settled?'settled':'')+'"><div class="rec-line"><span class="rec-title">'+esc(o.game||'')+' · '+esc(o.type||'报备')+' · '+(o.hours||0)+'h</span><span class="rec-net">¥'+(o.net||0).toFixed(2)+'</span></div>'+
+    '<div class="rec-meta"><span class="rec-tag '+(o.settled?'ok':'no')+'">'+(o.settled?'✓ 已结算':'未结算')+'</span><span>'+timeStr+'</span></div>'+
+    (o.note?'<div class="rec-note">📝 '+esc(o.note)+'</div>':'')+
+    (o.images&&o.images.length?'<div class="rec-imgs">'+o.images.map(function(i){return '<span class="rec-img"><img src="'+esc(i)+'"></span>';}).join('')+'</div>':'')+
+    (showDelete?'<div class="rec-del"><button class="btn btn-ghost btn-sm" data-act="del-record" data-v="'+o.id+'">删除记录</button></div>':'')+'</div>';
+}
+
+PAGES.home={title:'主页',render:function(){
+  if(S.loading) return '<div class="loading"><span class="spinner"></span>加载中…</div>';
+  var u=S.user; if(!u) return '<div class="empty">请先登录</div>';
+  if(!S.currentClub) return card('<div class="card-title">还没有加入俱乐部</div><div class="hint">请联系管理员获取绑定码，在设置页输入即可加入</div>');
+
+  var role=S.currentRole; var isAdmin=role==='admin'; var readonly=(role==='leader'||role==='vice_leader'); var isPlayer=role==='player';
+  var isTop=(S.commission.top_players||[]).indexOf(u.nick)>=0;
+  var myOrders = S.orders.filter(o=>o.user_id===u.id);
+  var monthNet = myOrders.reduce((s,o)=>s+(o.net||0),0);
+  var monthGross = myOrders.reduce((s,o)=>s+(o.gross||0),0);
+
+  if(isPlayer){
+    return card('<div class="profile"><div class="avatar">'+esc((u.nick||u.username||'?').slice(0,1))+'</div><div class="profile-main"><div class="profile-name">'+esc(u.nick||u.username)+'</div><div class="profile-meta">'+esc(S.currentClub.name)+' · '+ROLE_LABEL[role]+'</div></div>'+(isTop?'<div class="badge">本月头牌</div>':'')+'</div>')+
+      card('<div class="card-title">个人总结</div><div class="stat-grid"><div class="stat"><div class="stat-num">¥'+monthNet.toFixed(0)+'</div><div class="stat-lbl">累计实得</div></div><div class="stat"><div class="stat-num">¥'+monthGross.toFixed(0)+'</div><div class="stat-lbl">累计流水</div></div><div class="stat"><div class="stat-num">'+myOrders.length+'</div><div class="stat-lbl">累计单量</div></div><div class="stat"><div class="stat-num">'+(isTop?'是':'否')+'</div><div class="stat-lbl">本月头牌</div></div></div>')+
+      card('<div class="rect-list"><button class="rect-btn" data-act="goto" data-page="report-player"><span class="rect-ico">📝</span><span class="rect-txt">陪玩报备</span><span class="rect-arrow">›</span></button></div>')+
+      secTitle('我的报备记录')+card(myOrders.length?myOrders.slice(0,6).map(function(o){return recItem(o);}).join(''):'<div class="empty">暂无记录</div>');
+  }
+
+  var btns=[{label:'陪玩报备',icon:'📝',page:'report-player'},{label:'直属报备',icon:'🤝',page:'report-direct'},{label:'派单报备',icon:'📤',page:'report-dispatch'},{label:'外宣录入',icon:'📣',page:'report-promo'}];
+  if(isAdmin){btns.push({label:'罚款',icon:'⚠️',page:'fine'});btns.push({label:'全部记录',icon:'📚',page:'all-records'});}
+  var btnHtml='';
+  for(var i=0;i<btns.length;i++){var b=btns[i];btnHtml+='<button class="rect-btn" data-act="goto" data-page="'+b.page+'"><span class="rect-ico">'+b.icon+'</span><span class="rect-txt">'+b.label+'</span><span class="rect-arrow">›</span></button>';}
+
+  return (readonly?'<div class="banner">👀 当前身份为<b>只读</b>，修改 / 删除类按钮已隐藏</div>':'')+
+    card('<div class="profile"><div class="avatar">'+esc((u.nick||u.username||'?').slice(0,1))+'</div><div class="profile-main"><div class="profile-name">'+esc(u.nick||u.username)+'</div><div class="profile-meta">'+esc(S.currentClub.name)+' · '+ROLE_LABEL[role]+'</div></div>'+(isTop?'<div class="badge">本月头牌</div>':'')+'</div>')+
+    card('<div class="card-title">个人总结</div><div class="stat-grid"><div class="stat"><div class="stat-num">¥'+monthNet.toFixed(0)+'</div><div class="stat-lbl">累计实得</div></div><div class="stat"><div class="stat-num">¥'+monthGross.toFixed(0)+'</div><div class="stat-lbl">累计流水</div></div><div class="stat"><div class="stat-num">'+myOrders.length+'</div><div class="stat-lbl">累计单量</div></div><div class="stat"><div class="stat-num">'+(isTop?'是':'否')+'</div><div class="stat-lbl">本月头牌</div></div></div>')+
+    card('<div class="rect-list">'+btnHtml+'</div>');
+}};
+
+PAGES['report-player']={title:'陪玩报备',back:true,render:function(){
+  if(!S.user) return '';
+  var mine = S.orders.filter(function(o){return o.user_id===S.user.id;}).slice(0,6);
+  var cnt = mine.length; var rate = S.commission.base || 20;
+  (S.commission.tiered||[]).forEach(function(t){if(cnt>=t.count)rate-=t.reduce;});
+  var extraPick='',discPick='';
+  for(var e=0;e<=10;e++)extraPick+='<button class="'+(S.extraVal===e?'on':'')+'" data-act="pick-num" data-target="extra" data-v="'+e+'">'+e+'</button>';
+  for(var d=1;d<=10;d++)discPick+='<button class="'+(S.discountVal===d?'on':'')+'" data-act="pick-num" data-target="discount" data-v="'+d+'">'+d+'</button>';
+  
+  var gameOpts = S.gameTree.map(g=>`<option>${esc(g.name)}</option>`).join('') || '<option>暂无项目</option>';
+
+  return card('<div class="field"><div class="field-label">游戏/项目</div><select class="input" id="rp-game">'+gameOpts+'</select></div>'+
+      '<div class="grid2">'+numField('流水总额 Gross','rp-gross','100')+numField('时长（小时）','rp-hours','1')+'</div>'+
+      '<div class="fold-bar '+(S.folds.extra?'open':'')+'" data-act="toggle-fold" data-v="extra"><span class="fb-label">加价</span><span class="fb-val">+'+S.extraVal+' 元</span><span class="fb-arrow">▾</span></div>'+
+      (S.folds.extra?'<div class="fold-body"><div class="num-pick">'+extraPick+'</div></div>':'')+
+      '<div class="fold-bar '+(S.folds.discount?'open':'')+'" data-act="toggle-fold" data-v="discount"><span class="fb-label">折扣</span><span class="fb-val">'+S.discountVal+' 折</span><span class="fb-arrow">▾</span></div>'+
+      (S.folds.discount?'<div class="fold-body"><div class="num-pick">'+discPick+'</div></div>':'')+
+      '<div class="check-line" data-act="toggle-settled"><span class="check-box '+(S.orderSettled?'on':'')+'">'+(S.orderSettled?'✓':'')+'</span><span>此单已结</span></div>'+
+      '<div class="calc-box" id="rp-calc"></div>'+
+      '<div class="field"><div class="field-label">备注</div><textarea class="input" id="rp-note" placeholder="补充说明…"></textarea></div>'+
+      '<button class="btn btn-primary btn-block" data-act="submit-player-report" style="margin-top:12px">提交报备</button>')+
+    secTitle('我的报备记录')+card(mine.length?mine.map(function(o){return recItem(o);}).join(''):'<div class="empty">暂无记录</div>');
+},after:function(){rpCalc();}};
+
+function rpCalc(){
+  var box=document.getElementById('rp-calc');if(!box)return;
+  var gross=parseFloat(document.getElementById('rp-gross').value)||0;
+  var extra=S.extraVal,disc=S.discountVal;
+  var finalGross=+(((gross+extra)*(disc/10)).toFixed(2));
+  var rate=S.commission.base||20;
+  var net=+(finalGross*(1-rate/100)).toFixed(2);
+  box.innerHTML='<div class="calc-row"><span>最终流水 Gross</span><b>¥'+finalGross.toFixed(2)+'</b></div><div class="calc-row"><span>抽成率</span><b>'+rate+'%</b></div><div class="calc-row total"><span>实得 Net</span><b>¥'+net.toFixed(2)+'</b></div>';
+}
+
+function makeStaffReportPage(kind){
+  var isDirect=kind==='direct';
+  return {title:isDirect?'直属报备':'派单报备',back:true,render:function(){
+    var rateVal=isDirect?5:8;var sel=S.selPlayer;
+    var myOrders=sel?S.orders.filter(function(o){return o.user_id===sel;}).slice(0,6):[];
+    var chosen=S.orders.filter(function(o){return S.selOrders.indexOf(o.id)>=0;});
+    var total=0;for(var i=0;i<chosen.length;i++)total+=chosen[i].gross;
+    var wage=+(total*rateVal/100).toFixed(2);
+    var chips='';
+    for(var k=0;k<S.members.length;k++){
+      var m=S.members[k];chips+='<button class="chip '+(sel===m.id?'on':'')+'" data-act="pick-player" data-v="'+m.id+'">'+esc(m.nick||m.username)+'</button>';
+    }
+    var orderRows='';
+    for(var m=0;m<myOrders.length;m++){var o=myOrders[m];orderRows+='<div class="row" data-act="toggle-order" data-v="'+o.id+'" style="cursor:pointer"><span>'+(S.selOrders.indexOf(o.id)>=0?'☑':'☐')+' '+esc(o.game||'')+' · '+o.hours+'h</span><b>¥'+o.gross+'</b></div>';}
+    
+    return card('<div class="card-title">选择陪玩</div><div style="display:flex;gap:7px;flex-wrap:wrap;">'+chips+'</div>')+
+      (sel?card('<div class="card-title">已选单子（多选）</div>'+orderRows+
+        '<div class="calc-box"><div class="calc-row"><span>已选单子</span><b>'+chosen.length+' 单</b></div><div class="calc-row"><span>单子总价</span><b>¥'+total.toFixed(2)+'</b></div><div class="calc-row total"><span>我的工资</span><b>¥'+wage.toFixed(2)+'</b></div></div>'+
+        '<button class="btn btn-primary btn-block" data-act="submit-staff-report" data-kind="'+kind+'">确认拉单</button>')
+      :card('<div class="empty">请先选择一位陪玩</div>'));
+  }};
+}
+PAGES['report-direct']=makeStaffReportPage('direct');
+PAGES['report-dispatch']=makeStaffReportPage('dispatch');
+
+PAGES['report-promo']={title:'外宣录入',back:true,render:function(){
+  var promoRows = S.promos.map(p=>'<div class="row"><span>'+esc(p.note||'外宣')+'</span><b style="color:var(--primary)">¥'+p.net+'</b></div>').join('');
+  return card('<div class="card-title">填写外宣数据</div>'+numField('宣陪数量（5 元/个）','pm-a','0')+numField('宣板数量（8 元/个）','pm-b','0')+
+    '<button class="btn btn-primary btn-block" data-act="submit-promo">提交录入</button>')+
+    secTitle('我的外宣记录')+card(promoRows||'<div class="empty">暂无记录</div>');
+}};
+
+PAGES.fine={title:'罚款',back:true,render:function(){
+  var opts = S.members.map(m=>'<option value="'+m.id+'">'+esc(m.nick||m.username)+'</option>').join('');
+  var fines = S.fines.map(f=>'<div class="row"><span>'+esc(f.note||'罚款')+'</span><b style="color:#d9534f">-¥'+Math.abs(f.net)+'</b></div>').join('');
+  return card('<div class="card-title">下发罚款单</div><div class="field"><div class="field-label">选择陪玩</div><select class="input" id="fn-player">'+opts+'</select></div>'+numField('罚款金额（元）','fn-amount','20')+field('罚款原因','','')+'<button class="btn btn-primary btn-block" data-act="submit-fine">确认下发</button>')+
+    secTitle('罚款记录')+card(fines||'<div class="empty">暂无记录</div>');
+}};
+
+PAGES['all-records']={title:'全部记录',back:true,render:function(){
+  var isAdmin=S.currentRole==='admin';
+  var list=S.orders; // 这里可以直接用已经分页拉取的 orders
+  var items=list.map(o=>recItem(o, isAdmin)).join('');
+  return card('<div class="card-title">全员报备记录（第 '+(S.pageIdx+1)+' 页）</div>'+items+
+      '<div style="display:flex;gap:9px;margin-top:13px;"><button class="btn btn-ghost btn-block btn-sm" data-act="page-prev">上一页</button><button class="btn btn-ghost btn-block btn-sm" data-act="page-next">下一页</button></div>');
+}};
+
+PAGES['pending-hub']={title:'待审',render:function(){
+  var tab=S.playerPendingTab;
+  return '<div class="seg"><div class="seg-item '+(tab==='audit'?'on':'')+'" data-act="player-pending-tab" data-v="audit">审核</div><div class="seg-item '+(tab==='standard'?'on':'')+'" data-act="player-pending-tab" data-v="standard">标准</div><div class="seg-item '+(tab==='notice'?'on':'')+'" data-act="player-pending-tab" data-v="notice">通知</div></div>'+
+    (tab==='audit'?pendingAuditRender():'')+(tab==='standard'?pendingStandardRender():'')+(tab==='notice'?pendingNoticeRender():'');
+}};
+
+PAGES['pending-audit']={title:'审核',render:function(){return pendingAuditRender();}};
+PAGES['pending-standard']={title:'标准',render:function(){return pendingStandardRender();}};
+PAGES['pending-notice']={title:'通知',render:function(){return pendingNoticeRender();}};
+PAGES['pending-settings']={title:'设置',render:function(){return pendingSettingsRender();}};
+
+function pendingAuditRender(){
+  if(S.appStatus==='passed') return card('<div style="text-align:center;padding:16px 0 8px"><div style="font-size:44px;margin-bottom:12px">🎉</div><div style="font-size:15px;font-weight:700;margin-bottom:8px">审核已通过</div><div style="font-size:12px;color:var(--text-sub);line-height:1.7;margin-bottom:14px">请联系管理员获取陪玩绑定码<br>在设置页输入即可解锁正式陪玩权限</div></div>');
+  if(S.appStatus==='waiting') return card('<div style="text-align:center;padding:22px 0 10px"><div style="font-size:44px;margin-bottom:12px">⏳</div><div style="font-size:15px;font-weight:700;margin-bottom:8px">正在审核中</div><div style="font-size:12px;color:var(--text-sub);line-height:1.7">你的资料已提交至审核大厅<br>请耐心等待审核员处理</div></div>');
+  
+  var gameOpts=(S.gameTree||[]).map(g=>'<option>'+esc(g.name)+'</option>').join('');
+  return card('<div class="card-title">提交审核资料</div><div class="field"><div class="field-label">申请游戏</div><select class="input" id="pa-game">'+gameOpts+'</select></div>'+field('技能位置','例如：技术打野 / 娱乐辅助')+field('微信号（必填）','方便审核员联系你')+
+    '<div class="field"><div class="field-label">自我介绍 / 实力证明</div><textarea class="input" placeholder="简单介绍一下自己…"></textarea></div>'+
+    '<button class="btn btn-primary btn-block" data-act="submit-pending-app" style="margin-top:12px">提交审核</button>');
+}
+function pendingStandardRender(){ return card('<div class="empty">请选择游戏查看审核要求</div>'); }
+function pendingNoticeRender(){ return card('<div class="empty">暂无通知</div>'); }
+function pendingSettingsRender(){
+  return card('<div class="card-title">账号资料</div><div class="field"><div class="field-label">用户名（不可改）</div><input class="input" value="'+esc(S.user?.username||'')+'" readonly></div>'+field('昵称','',S.user?.nick||'')+'<button class="btn btn-primary btn-block" data-act="save-nickname">保 存</button>')+
+    card('<div class="card-title">公共设置</div><button class="btn btn-ghost btn-block" style="margin-top:13px;color:#d9534f" data-act="logout">🚪 退出登录</button>');
+}
+
+PAGES.audit={title:'审核',right:function(){return S.currentRole==='admin'?'<button class="tb-btn" data-act="goto" data-page="audit-list">审核列表</button>':'';},render:function(){
+  var tab=S.auditTab;
+  var list=S.audits.filter(function(a){return tab==='hall'?a.status==='waiting':a.status==='reviewing';});
+  var statusText={waiting:'待一审',reviewing:'审核中',passed:'已通过',rejected:'已拒绝'};var html='';
+  for(var i=0;i<list.length;i++){var a=list[i];html+=card('<div class="audit-head"><div class="avatar sm">🍇</div><div><div class="audit-name">'+esc(a.game||'')+'</div><div class="audit-sub">'+esc(a.skill||'')+' · 微信号 '+esc(a.wechat_id||'')+'</div></div><div class="tag">'+(statusText[a.status]||a.status)+'</div></div><div class="audit-actions">'+(tab==='hall'?'<button class="btn btn-primary" data-act="audit-take" data-v="'+a.id+'">审 核</button>':'<button class="btn btn-ghost" data-act="audit-reject" data-v="'+a.id+'">拒 绝</button><button class="btn btn-primary" data-act="audit-pass" data-v="'+a.id+'">通 过</button>')+'</div>');}
+  if(!list.length)html=card('<div class="empty">这里空空的~</div>');
+  return '<div class="seg"><div class="seg-item '+(tab==='hall'?'on':'')+'" data-act="audittab" data-v="hall">大厅</div><div class="seg-item '+(tab==='mine'?'on':'')+'" data-act="audittab" data-v="mine">我的审核</div></div>'+html;
+}};
+
+PAGES['audit-list']={title:'审核列表',back:true,render:function(){
+  var html=S.audits.map(function(a){
+    var color=a.status==='passed'?'#5a9e6f':a.status==='rejected'?'#d9534f':'var(--primary)';
+    return '<div class="row"><span>'+esc(a.game||'')+' · '+esc(a.skill||'')+'<br><small style="color:var(--text-mute);font-size:9.5px">审核员：'+esc(a.reviewer_id||'—')+'</small></span><b style="color:'+color+'">'+(a.status==='passed'?'通过':a.status==='rejected'?'未通过':a.status==='reviewing'?'审核中':'待审')+'</b></div>';
+  }).join('');
+  return card('<div class="card-title">全部审核记录</div>'+html);
+}};
+
+PAGES.finance={title:'流水',render:function(){
+  var tab=S.finTab;
+  var total=S.orders.reduce((s,o)=>s+(o.gross||0),0);
+  var net=S.orders.reduce((s,o)=>s+(o.net||0),0);
+  return '<div class="seg"><div class="seg-item '+(tab==='stat'?'on':'')+'" data-act="fintab" data-v="stat">流水统计</div><div class="seg-item '+(tab==='wage'?'on':'')+'" data-act="fintab" data-v="wage">工资表</div></div>'+
+    card('<div class="stat-grid"><div class="stat"><div class="stat-num">'+S.orders.length+'</div><div class="stat-lbl">总单数</div></div><div class="stat"><div class="stat-num">¥'+total.toFixed(0)+'</div><div class="stat-lbl">总流水</div></div><div class="stat"><div class="stat-num">¥'+(total-net).toFixed(0)+'</div><div class="stat-lbl">总抽成</div></div><div class="stat"><div class="stat-num">¥'+net.toFixed(0)+'</div><div class="stat-lbl">总实得</div></div></div>');
+}};
+
+PAGES.rank={title:'榜单',render:function(){
+  var byUser={};S.orders.forEach(function(o){if(!byUser[o.user_id])byUser[o.user_id]={id:o.user_id,gross:0};byUser[o.user_id].gross+=o.gross||0;});
+  var list=Object.values(byUser).sort((a,b)=>b.gross-a.gross).slice(0,10);
+  var fullRows=list.map((r,i)=>'<div class="rank-row"><div class="rank-no '+(i<3?'top':'')+'">'+(i+1)+'</div><div class="rank-name">'+(S.members.find(m=>m.id===r.id)?.nick||r.id.slice(0,6))+'</div><div class="rank-val">¥'+r.gross.toFixed(0)+'</div></div>').join('');
+  return card('<div class="card-title">流水榜单</div>'+fullRows);
+}};
+
+function renderGameTree(){
+  var html='';
+  for(var gi=0;gi<S.gameTree.length;gi++){
+    var g=S.gameTree[gi];
+    html+='<div class="tree-game"><div class="tree-game-head" data-act="toggle-game-tree" data-v="'+gi+'"><span>'+(g.expanded?'▾':'▸')+'</span><span class="tree-game-name">🎮 '+esc(g.name)+'</span><button class="btn btn-ghost btn-sm" data-act="del-game-tree" data-v="'+gi+'">删</button></div>';
+    if(g.expanded){
+      for(var ii=0;ii<g.items.length;ii++){
+        var it=g.items[ii];
+        html+='<div class="tree-item"><div class="tree-item-head" data-act="toggle-item-tree" data-g="'+gi+'" data-v="'+ii+'"><span>'+(it.expanded?'▾':'▸')+'</span><span class="tree-item-name">📦 '+esc(it.name)+'</span><button class="btn btn-ghost btn-sm" data-act="del-item-tree" data-g="'+gi+'" data-v="'+ii+'">删</button></div>';
+        if(it.expanded){
+          for(var di=0;di<it.durations.length;di++){
+            var d=it.durations[di];
+            html+='<div class="tree-dur"><input class="inline-input" type="number" value="'+d.hours+'" data-edit="dur-hours" data-g="'+gi+'" data-i="'+ii+'" data-d="'+di+'"> 小时 × ¥ <input class="inline-input" type="number" value="'+d.price+'" data-edit="dur-price" data-g="'+gi+'" data-i="'+ii+'" data-d="'+di+'"> <button class="btn btn-ghost btn-sm" data-act="del-duration" data-g="'+gi+'" data-i="'+ii+'" data-v="'+di+'">删</button></div>';
+          }
+          html+='<button class="btn btn-ghost btn-sm" data-act="add-duration" data-g="'+gi+'" data-i="'+ii+'">+ 时长档位</button>';
+        }
+        html+='</div>';
+      }
+      html+='<button class="btn btn-ghost btn-sm" data-act="add-item-tree" data-v="'+gi+'">+ 新增项目</button>';
+    }
+    html+='</div>';
+  }
+  return html;
+}
+
+PAGES.settings={title:'设置',render:function(){
+  var u=S.user; if(!u) return '';
+  var role=S.currentRole; var isAdmin=role==='admin'; var isStaff=role==='staff'; var readonly=(role==='leader'||role==='vice_leader');
+  function panel(id,title,body){var open=!!S.panels[id];return '<div class="panel '+(open?'open':'')+'"><div class="panel-head" data-act="panel" data-v="'+id+'"><span>'+title+'</span><span class="panel-arrow">▾</span></div>'+(open?'<div class="panel-body">'+body+'</div>':'')+'</div>';}
+
+  var base = card('<div class="card-title">账号资料</div><div class="field"><div class="field-label">用户名（只读）</div><input class="input" value="'+esc(u.username)+'" readonly></div>'+field('昵称','',u.nick||'')+'<button class="btn btn-primary btn-block" data-act="save-nickname">保 存</button>')+
+    card('<div class="card-title">身份 / 俱乐部</div>'+rowEl('当前俱乐部',esc(S.currentClub?.name||'未加入'))+rowEl('当前身份',ROLE_LABEL[role]||role||'—')+'<button class="btn btn-ghost btn-block" style="margin-top:11px;color:#d9534f" data-act="logout">退出登录</button>');
+
+  if(isAdmin||readonly){
+    // 只有管理员能看到真实码
+    var clubCodes = isAdmin ? rowEl('陪玩绑定码','<span class="code-val">'+esc(S.currentClub.code)+'</span>') + rowEl('员工绑定码','<span class="code-val">'+esc(S.currentClub.staff_code)+'</span>') : '';
+    var tierHtml=(S.commission.tiered||[]).map((t,i)=>'<div class="row-flex"><span class="small-lbl">满</span><input class="inline-input" type="number" value="'+t.count+'" data-edit="tier-count" data-i="'+i+'"><span class="small-lbl">单，抽成减</span><input class="inline-input" type="number" value="'+t.reduce+'" data-edit="tier-reduce" data-i="'+i+'"><span class="small-lbl">%</span><button class="btn btn-ghost btn-sm" data-act="del-tier" data-v="'+i+'">删</button></div>').join('');
+    
+    return base +
+      panel('club','🏠 俱乐部信息',field('俱乐部名称','',S.currentClub.name)+clubCodes) +
+      panel('business','⚙️ 业务与抽成',field('基础抽成（%）','', S.commission.base || 20)+tierHtml+'<button class="btn btn-primary btn-block btn-sm" style="margin-top:11px" data-act="save-business">保存设置</button>') +
+      panel('members','👥 成员管理',S.members.map(function(m){var mRole=m.roles?.find(r=>r.club_id===S.currentClub.id)?.role||'player';return '<div class="row"><span>'+esc(m.nick||m.username)+' <small>('+ROLE_LABEL[mRole]+')</small></span><button class="btn btn-ghost btn-sm" data-act="appoint-role" data-v="'+m.id+'">任命</button></div>';}).join(''));
+  }
+
+  return base + card('<div class="card-title">公共设置</div><div class="row"><span>🎨 主题</span><span style="display:flex;gap:5px"><button class="chip" data-act="theme" data-v="glass">毛玻璃</button><button class="chip" data-act="theme" data-v="y2k">Y2K</button></span></div>');
+}};
+
+PAGES['super-login']={title:'最高管理员',back:true,render:function(){
+  return card('<div style="text-align:center;padding:14px 0 20px"><div style="font-size:40px;margin-bottom:12px">🔒</div><div style="font-size:14px;font-weight:600;margin-bottom:6px">平台最高管理员</div></div>'+
+    '<input class="input" type="password" id="super-pass" placeholder="请输入最高权限密码">'+
+    '<button class="btn btn-primary btn-block" data-act="super-login">进入控制台</button>');
+}};
+
+PAGES['super-console']={title:'控制台',back:true,render:function(){
+  var codeHtml=S.genCodes.map(function(c){
+    var usedClub = S.allClubs.find(cl => cl.id === c.used_by_club_id);
+    return '<div class="code-item"><span class="code-val">'+c.code+'</span><span class="code-status '+(c.used?'used':'')+'">'+(c.used?'已用于：'+esc(usedClub?.name||'未知'):'未使用')+'</span>'+(c.used?'<button class="btn btn-ghost btn-sm" style="color:#d9534f" data-act="revoke-code" data-v="'+c.id+'">取消授权</button>':'')+'</div>';
+  }).join('');
+  return card('<div class="card-title">授权码管理</div><button class="btn btn-primary btn-block" data-act="gen-code">+ 生成新授权码</button><div style="margin-top:13px">'+codeHtml+'</div>');
+}};
+
+/* ================= 交互事件与数据库写入 ================= */
+
+async function handleAction(a,d){
+  switch(a){
+    case 'goto': go(d.page); break;
+    case 'back': back(); break;
+    case 'tab': switchTab(d.v); break;
+    case 'regtab': S.regTab=d.v; render(); break;
+    case 'theme': S.theme=d.v; localStorage.setItem('theme', d.v); applyTheme(); render(); break;
+    case 'logout': localStorage.removeItem('uid'); window.location.reload(); break; // 强制刷新
+
+    case 'do-login': {
+      var u = document.getElementById('login-user')?.value.trim();
+      var p = document.getElementById('login-pass')?.value;
+      if(!u||!p) { toast('请填写账号密码'); break; }
+      await login(u,p); if(S.user) toast('登录成功'); break;
+    }
+
+    case 'do-join': {
+      var inputs = document.querySelectorAll('#app .input');
+      var uname = inputs[0].value.trim(); var pword = inputs[1].value; var nick = inputs[2].value.trim();
+      var cname = inputs[3].value.trim(); var code = inputs[4].value.trim();
+      if(!uname||!pword||!nick||!cname||!code) { toast('请填写完整'); break; }
+
+      var { data: club } = await db.from('clubs').select('*').eq('name', cname).or(`code.eq.${code},staff_code.eq.${code}`).maybeSingle();
+      if(!club) { toast('俱乐部名称或绑定码错误'); break; }
+
+      var role = (club.code === code) ? 'player' : 'staff';
+      var uid = crypto.randomUUID();
+      var { error } = await db.from('profiles').insert({ id: uid, username: uname, password: pword, nick: nick, roles: [{club_id: club.id, role}], current_club_id: club.id, active_role: role });
+      
+      if(error) { toast('账号已被使用或注册失败'); break; }
+      toast('加入成功，请登录'); go('login'); break;
+    }
+
+    case 'do-new-club': {
+      var inputs = document.querySelectorAll('#app .input');
+      var uname = inputs[0].value.trim(); var pword = inputs[1].value; var nick = inputs[2].value.trim();
+      var cname = inputs[3].value.trim(); var authCode = inputs[4].value.trim();
+      if(!uname||!pword||!nick||!cname||!authCode) { toast('请填写完整'); break; }
+
+      var { data: codeData } = await db.from('auth_codes').select('*').eq('code', authCode).eq('used', false).maybeSingle();
+      if(!codeData) { toast('授权码无效或已被使用'); break; }
+
+      var cid = crypto.randomUUID(); var newCode = genCode(); var newStaffCode = genCode();
+      await db.from('clubs').insert({ id: cid, name: cname, code: newCode, staff_code: newStaffCode, commission: {base:20, tiered:[], top_bonus:15, top_players:[], dispatch_rate:8, direct_rate:5} });
+      await db.from('auth_codes').update({ used: true, used_by_club_id: cid }).eq('id', codeData.id);
+      
+      var uid = crypto.randomUUID();
+      await db.from('profiles').insert({ id: uid, username: uname, password: pword, nick: nick, roles: [{club_id: cid, role: 'admin'}], current_club_id: cid, active_role: 'admin' });
+      
+      S.modal = { title: '🎉 创建成功', content: `俱乐部名称：${cname}\n\n陪玩绑定码：${newCode}\n员工绑定码：${newStaffCode}\n\n请妥善保存以上信息！`, action: 'close-modal', actionText: '去登录' };
+      render(); break;
+    }
+
+    case 'submit-player-report': {
+      var gross = parseFloat(document.getElementById('rp-gross').value) || 0;
+      if(!gross) { toast('请填写金额'); break; }
+      var rate = S.commission.base || 20;
+      var net = +(gross*(1-rate/100)).toFixed(2);
+      var game = document.getElementById('rp-game')?.value || '';
+      var note = document.getElementById('rp-note')?.value || '';
+      var { error } = await db.from('orders').insert({
+        id: crypto.randomUUID(), club_id: S.currentClub.id, user_id: S.user.id,
+        type: '报备', game, amount: gross, gross, commission: +(gross-net).toFixed(2), net, settled: S.orderSettled, note
+      });
+      if(error){ toast('提交失败'); break; }
+      toast('报备成功'); S.orderSettled=false; loadHomeData(); break;
+    }
+
+    case 'pick-player': S.selPlayer=d.v; S.selOrders=[]; render(); break;
+    case 'toggle-order': { var i=S.selOrders.indexOf(d.v); if(i>=0)S.selOrders.splice(i,1); else S.selOrders.push(d.v); render(); break; }
+    
+    case 'submit-staff-report': {
+      if(!S.selOrders.length){ toast('请先勾选'); break; }
+      var chosen = S.orders.filter(o => S.selOrders.includes(o.id));
+      var totalGross = chosen.reduce((s,o)=>s+(o.gross||0),0);
+      var rate = d.v === 'direct' ? 5 : 8;
+      var wage = +(totalGross * (rate/100)).toFixed(2);
+      var { error } = await db.from('orders').insert({
+        id: crypto.randomUUID(), club_id: S.currentClub.id, user_id: S.user.id,
+        type: d.v === 'direct' ? '直属提成' : '派单提成',
+        amount: totalGross, gross: totalGross, net: wage, commission: 0, note: `拉了${chosen.length}单`, settled: false
+      });
+      if(error){ toast('拉单失败'); break; }
+      toast('拉单成功'); S.selOrders=[]; loadHomeData(); break;
+    }
+
+    case 'submit-promo': {
+      var a = parseInt(document.getElementById('pm-a').value)||0;
+      var b = parseInt(document.getElementById('pm-b').value)||0;
+      if(!a && !b) { toast('请填写数量'); break; }
+      var wage = a*5 + b*8;
+      await db.from('orders').insert({ id: crypto.randomUUID(), club_id: S.currentClub.id, user_id: S.user.id, type: '外宣', amount: wage, gross: wage, net: wage, commission: 0, note: `宣陪${a}个 宣板${b}个`, settled: false });
+      toast('录入成功'); loadHomeData(); break;
+    }
+
+    case 'submit-fine': {
+      var fnUser = document.getElementById('fn-player').value;
+      var amount = parseFloat(document.getElementById('fn-amount').value)||0;
+      if(!amount) { toast('请填金额'); break; }
+      await db.from('orders').insert({ id: crypto.randomUUID(), club_id: S.currentClub.id, user_id: fnUser, type: '罚款', amount: amount, gross: 0, net: -amount, commission: 0, note: document.querySelectorAll('#app .input')[2]?.value || '违规罚款', settled: false });
+      toast('罚款下发成功'); loadHomeData(); break;
+    }
+    
+    case 'save-business': {
+      var newComm = S.commission;
+      newComm.base = parseFloat(document.querySelectorAll('#app .input')[0]?.value) || 20;
+      var { error } = await db.from('clubs').update({ commission: newComm }).eq('id', S.currentClub.id);
+      if(!error) { toast('配置已保存'); render(); } break;
+    }
+
+    case 'appoint-role': {
+      var roleName = prompt("输入身份：admin, leader, staff, player", "leader");
+      if(!['admin','leader','vice_leader','staff','player'].includes(roleName)) { toast('身份无效'); break; }
+      var target = S.members.find(m=>m.id === d.v);
+      if(!target) break;
+      var newRoles = (target.roles||[]).map(r => r.club_id === S.currentClub.id ? {...r, role: roleName} : r);
+      await db.from('profiles').update({ roles: newRoles }).eq('id', d.v);
+      toast('任命成功'); loadHomeData(); break;
+    }
+
+    case 'audit-take': await db.from('applications').update({status:'reviewing'}).eq('id', d.v); loadHomeData(); break;
+    case 'audit-pass': await db.from('applications').update({status:'passed'}).eq('id', d.v); loadHomeData(); break;
+    case 'audit-reject': await db.from('applications').update({status:'rejected'}).eq('id', d.v); loadHomeData(); break;
+
+    case 'save-nickname': {
+      var nick = document.querySelectorAll('#app .input')[1]?.value;
+      if(!nick) { toast('昵称不能为空'); break; }
+      await db.from('profiles').update({nick}).eq('id', S.user.id);
+      S.user.nick = nick; toast('已保存'); render(); break;
+    }
+
+    case 'super-login': { if(document.getElementById('super-pass').value !== '846467554jxjsjsisjidbdgujwqkjsuxhv；@') { toast('密码错误'); break; } go('super-console'); break; }
+    
+    case 'gen-code': {
+      var newCode = genCode();
+      await db.from('auth_codes').insert({ id: crypto.randomUUID(), code: newCode, used: false });
+      loadSuperData().then(render); toast('生成成功'); break;
+    }
+    case 'revoke-code': {
+      if(!confirm('确定要取消该俱乐部的授权吗？取消后该俱乐部所有成员将无法登录！')) break;
+      await db.from('auth_codes').update({ used: false, used_by_club_id: null }).eq('id', d.v);
+      loadSuperData().then(render); toast('授权已取消'); break;
+    }
+
+    case 'close-modal': if(S.modal?.title.includes('创建成功')) { S.modal = null; window.location.reload(); } else { S.modal = null; render(); } break;
+    case 'panel': S.panels[d.v]=!S.panels[d.v]; render(); break;
+    case 'toggle-fold': S.folds[d.v]=!S.folds[d.v]; render(); break;
+    case 'pick-num': if(d.target==='extra')S.extraVal=+d.v; else S.discountVal=+d.v; render(); break;
+    case 'toggle-settled': S.orderSettled=!S.orderSettled; render(); break;
+    case 'page-prev': if(S.pageIdx>0){S.pageIdx--; loadHomeData();} break;
+    case 'page-next': S.pageIdx++; loadHomeData(); break;
+    case 'fintab': S.finTab=d.v; render(); break;
+    case 'audittab': S.auditTab=d.v; render(); break;
+    case 'player-pending-tab': S.playerPendingTab=d.v; render(); break;
+    case 'pending-tab': S.pendingTab=d.v; S.page='pending-'+d.v; render(); break;
+    case 'submit-pending-app': S.appStatus='waiting'; render(); toast('资料已提交'); break;
+  }
+}
+
+document.addEventListener('click',function(e){
+  var el=e.target.closest('[data-act]');
+  if(!el)return;
+  handleAction(el.dataset.act,{v:el.dataset.v,page:el.dataset.page,role:el.dataset.role,target:el.dataset.target,g:el.dataset.g,i:el.dataset.i});
+});
+
+document.addEventListener('input',function(e){
+  var id=e.target.id||'';
+  if(id==='rp-gross'||id==='rp-hours')rpCalc();
+});
+
+(async function init(){ 
+  applyTheme(); 
+  var ok = await loadCurrentUser(); 
+  if(!ok) S.page = 'login'; 
+  render(); 
+})();
+</script>
+</body>
+</html>
