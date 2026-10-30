@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>俱乐部管理系统</title>
+<script>
+  window.onerror = function(msg, url, line) {
+    document.body.innerHTML = `<div style="padding:20px; font-family:sans-serif; background:#fff; color:#d9534f; min-height:100vh;"><h2>⚠️ 网页发生崩溃</h2><p><b>错误信息：</b>${msg}</p><p><b>所在行号：</b>第 ${line} 行</p></div>`;
+    return false;
+  };
+</script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;background:#d9d3c8;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:14px;color:var(--text)}
+.phone{width:100%;max-width:430px;height:100dvh;max-height:920px;position:relative;overflow:hidden;border-radius:36px;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.2);background:var(--bg);transition:background .3s}@media(max-width:430px){.phone{border-radius:0;max-height:none}body{padding:0}}
+:root{--bg:#f5f2eb;--card:rgba(255,255,255,.66);--card-border:rgba(255,255,255,.92);--text:#4a423a;--text-sub:#8b8178;--text-mute:#b3aaa1;--primary:#c08c65;--primary-soft:rgba(192,140,101,.13);--line:rgba(0,0,0,.06);--shadow:0 10px 30px rgba(180,160,140,.14);--radius:26px;--input-bg:rgba(255,255,255,.78)}
+.theme-y2k{--bg:#ffe8f0;--card:#fff;--card-border:#000;--text:#111;--text-sub:#555;--text-mute:#888;--primary:#ff5c8a;--primary-soft:rgba(255,92,138,.16);--line:rgba(0,0,0,.12);--shadow:5px 5px 0 #000;--radius:14px;--input-bg:#fff}
+.theme-pixel{--bg:#2e2018;--card:#f7e7c8;--card-border:#5c3a21;--text:#2d1f14;--text-sub:#6b4f36;--text-mute:#a08464;--primary:#8f563b;--primary-soft:#ead7b3;--line:#d8c3a0;--shadow:5px 5px 0 #4a2f1b;--radius:0px;--input-bg:#fffaf0;font-family:"Courier New",Courier,monospace}
+.orbs{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}.orbs i{position:absolute;border-radius:50%;filter:blur(58px);opacity:.75}.orbs i:nth-child(1){width:280px;height:280px;background:#f3d9c4;top:-70px;left:-70px}.orbs i:nth-child(2){width:250px;height:250px;background:#e7dfd2;bottom:90px;right:-90px}.orbs i:nth-child(3){width:200px;height:200px;background:#f8e9d9;bottom:-60px;left:20px}.theme-y2k .orbs,.theme-pixel .orbs{display:none}
+.screen{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;min-height:0}
+.topbar{display:flex;align-items:center;height:58px;padding:0 14px;flex-shrink:0;gap:6px}.tb-back{width:34px;height:34px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--text);font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding-bottom:4px}.tb-back.ghost{visibility:hidden}.tb-title{flex:1;text-align:center;font-size:16px;font-weight:600;letter-spacing:.5px}.tb-right{min-width:34px;display:flex;justify-content:flex-end}.tb-btn{border:none;background:var(--primary);color:#fff;font-size:12px;padding:7px 12px;border-radius:12px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.pending-topbar{display:flex;gap:6px;padding:0 12px;height:58px;align-items:center;flex-shrink:0}.pt-tab{flex:1;border:1px solid var(--card-border);background:var(--card);color:var(--text-sub);padding:8px 0;border-radius:12px;font-size:12px;cursor:pointer;font-family:inherit}.pt-tab.on{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:700}
+.app{flex:1;overflow-y:auto;overflow-x:hidden;padding:2px 14px 26px;scrollbar-width:none}.app::-webkit-scrollbar{display:none}
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}.card-title{font-size:14px;font-weight:600;margin-bottom:12px;letter-spacing:.4px}.sec-title{font-size:13px;color:var(--text-sub);font-weight:600;margin:16px 4px 10px;letter-spacing:.4px}
+.tabbar{display:flex;height:64px;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom);background:var(--card);border-top:1px solid var(--card-border)}.tab{flex:1;border:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--text-mute);font-family:inherit}.tab.on{color:var(--primary)}.tab-ico{font-size:18px;line-height:1}.tab-txt{font-size:10px;letter-spacing:.5px}.tab.on .tab-txt{font-weight:700}
+.login{min-height:100%;display:flex;flex-direction:column;position:relative;padding:44px 6px 90px}.login-hero{text-align:center;margin-bottom:26px}.login-logo{width:82px;height:82px;margin:0 auto 16px;border-radius:28px;background:linear-gradient(140deg,#f0d3ba,#e3c1a5);display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 14px 30px rgba(192,140,101,.28)}.login-hero h1{margin:0 0 8px;font-size:23px;font-weight:600;letter-spacing:2px}.login-hero p{margin:0;font-size:12px;color:var(--text-sub);letter-spacing:1.5px}.login-register{text-align:center;font-size:12px;color:var(--text-mute);margin-top:14px;cursor:pointer}.login-register b{color:var(--primary)}.lock{position:absolute;right:2px;bottom:24px;width:44px;height:44px;border-radius:50%;border:1px solid var(--card-border);background:rgba(255,255,255,.45);font-size:17px;opacity:.55;cursor:pointer}
+.chip{border:1px solid var(--card-border);background:var(--card);color:var(--text-sub);padding:8px 14px;border-radius:20px;font-size:12px;cursor:pointer;font-family:inherit}.chip.on{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}
+.input{width:100%;border:1px solid transparent;background:var(--input-bg);border-radius:14px;padding:12px 14px;font-size:14px;color:var(--text);font-family:inherit;outline:none;margin-bottom:10px;transition:.15s}.input:focus{border-color:var(--primary)}select.input{appearance:none;-webkit-appearance:none}textarea.input{min-height:64px;resize:none;line-height:1.6}
+.field{margin-bottom:10px}.field-label{font-size:11px;color:var(--text-mute);margin:0 4px 6px;letter-spacing:.6px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hint{font-size:11px;color:var(--text-mute);text-align:center;margin-top:10px;line-height:1.6}.soft-note{font-size:11px;color:var(--text-mute);line-height:1.7;margin:10px 2px 0;letter-spacing:.3px;text-align:center}
+.btn{border:none;border-radius:16px;padding:13px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;letter-spacing:.5px}.btn:active{transform:scale(.97)}.btn-primary{background:var(--primary);color:#fff}.btn-ghost{background:var(--primary-soft);color:var(--primary)}.btn-block{width:100%;display:block}.btn-sm{padding:9px 14px;font-size:12px;border-radius:12px}.btn-danger{background:rgba(217,83,79,.12);color:#d9534f}
+.seg{display:flex;background:var(--card);border-radius:16px;padding:4px;margin-bottom:14px;border:1px solid var(--card-border)}.seg-item{flex:1;text-align:center;padding:9px 0;font-size:13px;color:var(--text-sub);border-radius:12px;cursor:pointer;font-weight:500}.seg-item.on{background:var(--primary);color:#fff;font-weight:600}
+.hscroll{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}.hscroll::-webkit-scrollbar{display:none}.hchip{flex-shrink:0;border:1px solid var(--card-border);background:var(--card);color:var(--text-sub);padding:8px 15px;border-radius:18px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap}.hchip.on{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}
+.profile{display:flex;align-items:center;gap:14px}.avatar{width:56px;height:56px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:26px;background:linear-gradient(140deg,#f6e2cf,#ecd0b6);flex-shrink:0}.avatar.sm{width:42px;height:42px;font-size:20px;border-radius:14px}.profile-main{flex:1;min-width:0}.profile-name{font-size:16px;font-weight:600;margin-bottom:5px}.profile-meta{font-size:11.5px;color:var(--text-sub)}.badge{font-size:10px;padding:5px 10px;border-radius:20px;background:var(--primary-soft);color:var(--primary);font-weight:600;white-space:nowrap}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:var(--primary-soft);border-radius:16px;padding:12px;text-align:center}.stat-num{font-size:17px;font-weight:700;color:var(--primary);margin-bottom:4px}.stat-lbl{font-size:10.5px;color:var(--text-sub);letter-spacing:.4px}
+.rect-list{display:flex;flex-direction:column;gap:10px}.rect-btn{display:flex;align-items:center;gap:11px;width:100%;border:1px solid var(--card-border);background:var(--primary-soft);border-radius:18px;padding:14px 15px;cursor:pointer;font-family:inherit;color:var(--text);font-size:13.5px;text-align:left}.rect-ico{font-size:18px;line-height:1;width:22px;text-align:center}.rect-txt{flex:1;font-weight:600;letter-spacing:.3px}.rect-arrow{color:var(--text-mute);font-size:16px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:13px;border-bottom:1px solid var(--line);gap:8px;flex-wrap:wrap}.row:last-child{border-bottom:none}.row span{color:var(--text-sub)}.row b{font-weight:600;text-align:right}
+.calc-box{background:var(--primary-soft);border-radius:16px;padding:12px 14px;margin:6px 0 14px}.calc-row{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;color:var(--text-sub)}.calc-row b{color:var(--text);font-weight:600}.calc-row.total{border-top:1px dashed var(--line);margin-top:6px;padding-top:9px;font-size:14px}.calc-row.total b{color:var(--primary);font-size:17px}
+.fold-bar{display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:10px;background:var(--input-bg);border:1px solid transparent;border-radius:14px;cursor:pointer;font-size:13px}.fold-bar .fb-label{flex:1;color:var(--text);font-weight:600}.fold-bar .fb-val{color:var(--primary);font-weight:700;font-size:12.5px}.fold-bar .fb-arrow{color:var(--text-mute);font-size:12px;transition:.2s}.fold-bar.open .fb-arrow{transform:rotate(180deg)}.fold-body{padding:10px 12px 12px;background:var(--primary-soft);border-radius:14px;margin-bottom:10px}
+.num-pick{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:8px}.num-pick button{border:1px solid var(--card-border);background:var(--card);color:var(--text);padding:8px 0;border-radius:9px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600}.num-pick button.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+.check-line{display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--input-bg);border-radius:14px;margin-bottom:10px;cursor:pointer;font-size:13px}.check-box{width:20px;height:20px;border-radius:6px;border:2px solid var(--text-mute);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0}.check-box.on{background:var(--primary);border-color:var(--primary)}
+.upload-wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.upload-btn{border:1px dashed var(--card-border);background:var(--input-bg);color:var(--text-sub);padding:10px 14px;border-radius:11px;font-size:12px;cursor:pointer;font-family:inherit}.img-chip{width:52px;height:52px;border-radius:11px;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;overflow:hidden}.img-chip img{width:100%;height:100%;object-fit:cover}.img-chip .del{position:absolute;right:-4px;top:-4px;width:16px;height:16px;border-radius:50%;background:#d9534f;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
+.rec-item{padding:11px 12px;border-radius:13px;margin-bottom:8px;background:var(--input-bg);border-left:3px solid transparent}.rec-item.settled{border-left-color:#5a9e6f;background:rgba(90,158,111,.07)}.rec-line{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px}.rec-title{font-size:12.5px;font-weight:600}.rec-net{font-size:13.5px;font-weight:700;color:var(--primary)}.rec-meta{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text-mute);flex-wrap:wrap}.rec-tag{font-size:9.5px;padding:3px 7px;border-radius:8px;font-weight:700}.rec-tag.ok{background:rgba(90,158,111,.18);color:#3d7a4f}.rec-tag.no{background:rgba(192,140,101,.18);color:var(--primary)}.rec-note{font-size:11px;color:var(--text-sub);margin-top:5px;line-height:1.5}.rec-imgs{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}.rec-img{width:34px;height:34px;border-radius:8px;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:15px;overflow:hidden}.rec-img img{width:100%;height:100%;object-fit:cover}.rec-del{margin-top:7px}
+.audit-head{display:flex;align-items:center;gap:11px;margin-bottom:10px}.audit-name{font-size:13.5px;font-weight:600;margin-bottom:2px}.audit-sub{font-size:10.5px;color:var(--text-sub)}.tag{font-size:9.5px;padding:4px 8px;border-radius:11px;background:var(--primary-soft);color:var(--primary);font-weight:700;margin-left:auto;white-space:nowrap}.audit-actions{display:flex;gap:9px}.audit-actions .btn{flex:1}
+.podium{display:flex;align-items:flex-end;gap:8px;padding:6px 0 14px}.pod{flex:1;background:var(--primary-soft);border-radius:18px;padding:12px 6px;text-align:center}.pod1{padding-top:26px;padding-bottom:20px}.pod-av{font-size:22px;margin-bottom:6px}.pod-name{font-size:12px;font-weight:600;margin-bottom:3px}.pod-val{font-size:11px;color:var(--primary);font-weight:600}
+.rank-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.rank-row:last-child{border-bottom:none}.rank-no{width:24px;font-size:13px;font-weight:700;color:var(--text-mute);text-align:center}.rank-no.top{color:var(--primary)}.rank-name{flex:1;font-size:13.5px}.rank-val{font-size:13px;font-weight:600;color:var(--primary)}
+.banner{background:var(--primary-soft);border-radius:16px;padding:11px 14px;font-size:11.5px;color:var(--primary);margin-bottom:14px;line-height:1.6}.banner b{font-weight:700}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}.tbl th{text-align:left;color:var(--text-mute);font-weight:500;padding:8px 4px;border-bottom:1px solid var(--line);font-size:11px}.tbl td{padding:9px 4px;border-bottom:1px solid var(--line);color:var(--text)}.tbl tr:last-child td{border-bottom:none}.tbl td.r,.tbl th.r{text-align:right}
+.panel{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}.panel-head{display:flex;justify-content:space-between;align-items:center;padding:15px 16px;font-size:13.5px;font-weight:600;cursor:pointer;user-select:none}.panel-arrow{color:var(--text-mute);transition:.2s;font-size:12px}.panel.open .panel-arrow{transform:rotate(180deg)}.panel-body{padding:0 16px 16px;border-top:1px solid var(--line);padding-top:14px}
+.code-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}.code-item:last-child{border-bottom:none}.code-val{font-family:ui-monospace,Menlo,monospace;font-size:13px;font-weight:700;color:var(--primary);letter-spacing:1px}.code-status{font-size:10px;padding:3px 8px;border-radius:10px;background:var(--primary-soft);color:var(--primary);margin-left:auto}.code-status.used{background:rgba(0,0,0,.06);color:var(--text-mute)}
+.empty{text-align:center;color:var(--text-mute);font-size:12px;padding:26px 0}
+.toast{position:fixed;left:50%;bottom:110px;transform:translate(-50%,14px);background:rgba(50,44,38,.93);color:#fff;font-size:12.5px;padding:11px 20px;border-radius:16px;opacity:0;pointer-events:none;transition:.25s;z-index:999;max-width:80%;text-align:center;line-height:1.5}.toast.show{opacity:1;transform:translate(-50%,0)}
+.modal-mask{position:absolute;inset:0;background:rgba(30,24,20,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:10%}.modal-box{width:100%;height:80%;background:var(--card);border-radius:22px;padding:20px;display:flex;flex-direction:column;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid var(--card-border)}.modal-title{font-size:15px;font-weight:700;margin-bottom:12px;text-align:center}.modal-content{flex:1;font-size:12.5px;line-height:1.9;color:var(--text-sub);white-space:pre-wrap}.modal-actions{display:flex;gap:9px;margin-top:14px}
+.post-item{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--input-bg);border-radius:13px;margin-bottom:9px;cursor:pointer;font-size:13px}.inline-input{width:64px;padding:7px 5px;border-radius:9px;border:1px solid var(--card-border);background:var(--input-bg);color:var(--text);font-size:12px;text-align:center;font-family:inherit}.row-flex{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}.small-lbl{font-size:12px;color:var(--text-sub)}
+.top-picker-list{display:flex;gap:8px;flex-wrap:wrap;align-content:flex-start;flex:1;overflow-y:auto;padding:6px 0}
+.loading{text-align:center;padding:40px 0;color:var(--text-mute);font-size:12px}.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin-right:6px;vertical-align:middle}@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="orbs"><i></i><i></i><i></i></div>
+  <div class="screen">
+    <header class="topbar" id="topbar"></header>
+    <main class="app" id="app"></main>
+    <nav class="tabbar" id="tabbar"></nav>
+  </div>
+  <div id="modalRoot"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://thoaduhgtghskretxfut.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_rM9DsjFSuDd7PmnD4LP9rQ_CdvbkrD5';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const ROLE_LABEL = {admin:'管理员',leader:'团长',vice_leader:'副团',staff:'员工',player:'陪玩',pending:'待审陪'};
+const POST_MAP = {dispatch:'派单员',direct:'直属管理',audit:'审核员',promo:'外宣员'};
+
+const S = {
+  theme: localStorage.getItem('theme') || 'glass',
+  user: null, clubs: [], currentClub: null, currentRole: null,
+  page: 'login', history: [], params: {}, panels: {}, folds: {}, pageIdx: 0, loading: false,
+  orders: [], applications: [], members: [], modal: null,
+  extraVal: 0, discountVal: 10, orderSettled: false,
+  notes: {rp:'',staff:''}, images: {rp:[],staff:[],pending:[]},
+  selPlayer: null, selOrders: [], commission: {},
+  pendingTab: 'audit', standardGame: '', appStatus: 'none', playerPendingTab: 'audit',
+  bindModalContent: '恭喜你通过审核！\n\n请联系管理员获取陪玩绑定码。',
+  topPickerOpen: false, topPickerQuery: '', topPickerTemp: [], 
+  allAuthCodes: [], allClubs: [], // 超管界面专用
+  staffQuery: '', allQuery: '', regTab: 'join',
+  finTab: 'stat', auditTab: 'hall'
+};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const card = (html, cls='') => `<div class="card ${cls}">${html}</div>`;
+const secTitle = t => `<div class="sec-title">${t}</div>`;
+const softNote = t => `<div class="soft-note">${t}</div>`;
+const field = (label, ph, val='') => `<div class="field"><div class="field-label">${label}</div><input class="input" placeholder="${ph}" value="${esc(val)}"></div>`;
+const numField = (label, id, val) => `<div class="field"><div class="field-label">${label}</div><input class="input" id="${id}" type="number" value="${val}"></div>`;
+const rowEl = (l, v) => `<div class="row"><span>${l}</span><b>${v}</b></div>`;
+
+let toastTimer;
+function toast(msg){
+  let t = document.getElementById('toast');
+  if(!t){ t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 3000);
+}
+function genCode(){ const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const pick = () => Array.from({length:4}, ()=>c[Math.floor(Math.random()*c.length)]).join(''); return pick() + '-' + pick() + '-' + pick() + '-' + pick(); }
+function applyTheme(){ const p = $('#phone'); if(p) p.className = 'phone' + (S.theme === 'y2k' ? ' theme-y2k' : S.theme === 'pixel' ? ' theme-pixel' : ''); }
+
+async function login(username, password){
+  S.loading = true; render();
+  try{
+    const { data, error } = await db.from('profiles').select('*').eq('username', username).maybeSingle();
+    if(error) throw error;
+    if(!data || (data.password && data.password !== password)){ toast('用户名或密码错误'); return false; }
+    S.user = data; localStorage.setItem('uid', data.id); await bootUser(); return true;
+  }catch(e){ toast('登录失败：' + e.message); return false; } finally{ S.loading = false; }
+}
+
+async function loadCurrentUser(){
+  const uid = localStorage.getItem('uid'); if(!uid) return false;
+  const { data, error } = await db.from('profiles').select('*').eq('id', uid).maybeSingle();
+  if(error || !data) return false;
+  S.user = data; return await bootUser();
+}
+
+async function bootUser(){
+  if(!S.user) return false;
+  const roles = S.user.roles || []; const clubIds = roles.map(r => r.club_id).filter(Boolean);
+  
+  if(clubIds.length === 0){
+    S.clubs = []; S.currentClub = null; S.currentRole = S.user.active_role || null;
+    S.page = S.currentRole === 'pending' ? 'pending-audit' : 'home'; return true;
+  }
+  
+  const { data: clubs } = await db.from('clubs').select('*').in('id', clubIds);
+  S.clubs = clubs || []; const activeId = S.user.current_club_id || (S.clubs[0] && S.clubs[0].id);
+  S.currentClub = S.clubs.find(c => c.id === activeId) || S.clubs[0] || null;
+  const activeRole = roles.find(r => r.club_id === S.currentClub?.id);
+  S.currentRole = S.user.active_role || activeRole?.role || null;
+  
+  if(S.currentClub){
+    // 核心安全机制：检查该俱乐部是否拥有有效授权码
+    const { data: authData } = await db.from('auth_codes').select('*').eq('used_by_club_id', S.currentClub.id).eq('used', true).maybeSingle();
+    if(!authData) {
+      toast('该俱乐部已被平台取消授权，请联系最高管理员');
+      S.currentClub = null; S.clubs = []; S.currentRole = null;
+      S.page = 'home'; return true;
+    }
+
+    S.commission = S.currentClub.commission || { base: 20, tiered: [], top_bonus: 15, top_players: [], dispatch_rate: 8, direct_rate: 5 };
+  }
+  
+  S.page = 'home'; await loadHomeData(); return true;
+}
+
+async function loadHomeData(){
+  if(!S.currentClub || !S.user) return;
+  await Promise.all([loadOrders(), loadApplications()]); S.members = await loadMembers();
+}
+
+async function loadOrders(){
+  if(!S.currentClub) return; const per = 10; const from = S.pageIdx * per;
+  const { data, error } = await db.from('orders').select('*').eq('club_id', S.currentClub.id).order('created_at', { ascending: false }).range(from, from + per - 1);
+  if(!error) S.orders = data || [];
+}
+async function loadApplications(){
+  const { data, error } = await db.from('applications').select('*').order('created_at', { ascending: false }).limit(50);
+  if(!error) S.applications = data || [];
+}
+async function loadMembers(){
+  if(!S.currentClub) return [];
+  const { data, error } = await db.from('profiles').select('id,username,nick,roles,staff_roles');
+  if(error) return [];
+  return (data || []).filter(p => (p.roles || []).some(r => r.club_id === S.currentClub.id));
+}
+
+async function loadSuperData(){
+  const [authRes, clubRes] = await Promise.all([
+    db.from('auth_codes').select('*').order('created_at', { ascending: false }),
+    db.from('clubs').select('id, name')
+  ]);
+  S.allAuthCodes = authRes.data || [];
+  S.allClubs = clubRes.data || [];
+}
+
+function go(page, params={}){ 
+  S.history.push({page:S.page, params:S.params}); S.page = page; S.params = params; S.pageIdx = 0; 
+  if(page === 'super-console') loadSuperData().then(render); 
+  else render(); 
+}
+function back(){ const h = S.history.pop(); if(h){ S.page = h.page; S.params = h.params; } else { S.page = S.user ? 'home' : 'login'; } S.pageIdx = 0; render(); }
+function switchTab(k){ S.history = []; S.page = k; S.pageIdx = 0; if(k === 'finance' || k === 'rank') loadOrders().then(()=>render()); else render(); }
+function tabsFor(role){ if(role === 'player') return [['home','主页','🏠'],['pending-hub','待审','⏳'],['finance','流水','💰'],['rank','榜单','🏆'],['settings','设置','⚙️']]; return [['home','主页','🏠'],['audit','审核','🔍'],['finance','流水','💰'],['rank','榜单','🏆'],['settings','设置','⚙️']]; }
+
+function render(){
+  applyTheme(); const p = PAGES[S.page] || PAGES.home; const tb = $('#topbar');
+  if(p.bare){ tb.style.display = 'none'; tb.innerHTML = ''; tb.className = 'topbar'; }
+  else if(S.user && S.currentRole === 'pending'){
+    tb.style.display = 'flex'; tb.className = 'pending-topbar';
+    const map = {audit:'审核', standard:'标准', notice:'通知', settings:'设置'};
+    tb.innerHTML = ['audit','standard','notice','settings'].map(k => `<button class="pt-tab ${S.pendingTab === k ? 'on' : ''}" data-act="pending-tab" data-v="${k}">${map[k]}</button>`).join('');
+  } else {
+    tb.style.display = 'flex'; tb.className = 'topbar';
+    tb.innerHTML = (p.back ? `<button class="tb-back" data-act="back">‹</button>` : `<div class="tb-back ghost"></div>`) + `<div class="tb-title">${p.title || ''}</div>` + `<div class="tb-right">${p.right ? p.right() : ''}</div>`;
+  }
+  const app = $('#app'); app.innerHTML = p.render(); app.scrollTop = 0;
+  const tbEl = $('#tabbar');
+  if(p.bare || !S.user || !S.currentClub || S.currentRole === 'pending'){ tbEl.style.display = 'none'; tbEl.innerHTML = ''; }
+  else {
+    tbEl.style.display = 'flex';
+    tbEl.innerHTML = tabsFor(S.currentRole).map(([k, label, icon]) => `<button class="tab ${S.page === k ? 'on' : ''}" data-act="tab" data-v="${k}"><span class="tab-ico">${icon}</span><span class="tab-txt">${label}</span></button>`).join('');
+  }
+  renderModal(); if(p.after) p.after();
+}
+
+function renderModal(){
+  const root = $('#modalRoot'); if(!root) return;
+  if(S.topPickerOpen){
+    const q = (S.topPickerQuery || '').trim(); const all = (S.members || []).map(m => m.nick || m.username);
+    const list = q ? all.filter(n => n.indexOf(q) >= 0) : all;
+    const chips = list.map(n => `<button class="chip ${S.topPickerTemp.includes(n) ? 'on' : ''}" data-act="toggle-top-temp" data-v="${esc(n)}">${esc(n)}</button>`).join('');
+    root.innerHTML = `<div class="modal-mask" data-act="close-top-picker"><div class="modal-box" onclick="event.stopPropagation()"><div class="modal-title">选择本月头牌（可多选）</div><input class="input" id="top-picker-search" placeholder="搜索陪玩名字" value="${esc(q)}"><div class="top-picker-list">${chips || '<div class="empty">暂无成员</div>'}</div><div class="modal-actions"><button class="btn btn-ghost btn-block" data-act="close-top-picker">取消</button><button class="btn btn-primary btn-block" data-act="confirm-top-picker">确认（${S.topPickerTemp.length}人）</button></div></div></div>`;
+    return;
+  }
+  if(!S.modal){ root.innerHTML = ''; return; }
+  root.innerHTML = `<div class="modal-mask" data-act="close-modal"><div class="modal-box" onclick="event.stopPropagation()"><div class="modal-title">${S.modal.title}</div><div class="modal-content">${S.modal.content}</div><div class="modal-actions"><button class="btn btn-ghost btn-block" data-act="close-modal">我知道了</button>${S.modal.action ? `<button class="btn btn-primary btn-block" data-act="${S.modal.action}">${S.modal.actionText}</button>` : ''}</div></div></div>`;
+}
+
+const PAGES = {};
+
+PAGES.login = { bare: true, render(){ return `<div class="login"><div class="login-hero"><div class="login-logo">🍬</div><h1>俱乐部管理系统</h1><p>欢迎回来，请登录您的账号</p></div>${card(`<input class="input" id="login-user" placeholder="用户名" value=""><input class="input" id="login-pass" type="password" placeholder="密码" value=""><button class="btn btn-primary btn-block" data-act="do-login">登 录</button><div class="login-register" data-act="goto" data-page="register">还没有账号？<b>立即注册</b></div>`)}${softNote('温暖相伴，从这一次登录开始。')}<button class="lock" data-act="goto" data-page="super-login">🔒</button></div>`; } };
+
+PAGES.register = { title: '注册', back: true, render(){
+  return `<div class="seg"><div class="seg-item ${S.regTab==='join'?'on':''}" data-act="regtab" data-v="join">加入俱乐部</div><div class="seg-item ${S.regTab==='new'?'on':''}" data-act="regtab" data-v="new">开新俱乐部</div></div>` +
+  (S.regTab === 'join' ? card(`${field('俱乐部名称','例如：王者俱乐部','')}${field('绑定码','员工码 / 陪玩码','')}<button class="btn btn-primary btn-block" data-act="do-join">提交加入</button><div class="hint">系统会自动识别你输入的是「员工码」还是「陪玩码」</div>`) : card(`${field('俱乐部名称','给你的俱乐部起个名字','')}${field('最高管理员授权码','请填入平台生成的授权码','')}<button class="btn btn-primary btn-block" data-act="do-new-club">创建俱乐部</button><div class="hint">授权码需向平台最高管理员申请</div>`));
+}};
+
+function recItem(o, showDelete){
+  const dateStr = o.created_at ? new Date(o.created_at).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+  return `<div class="rec-item ${o.settled?'settled':''}"><div class="rec-line"><span class="rec-title">${esc(o.type||'报备')} · ${esc(o.game||'')} ${o.hours?('· '+o.hours+'h'):''}</span><span class="rec-net">¥${(o.net||0).toFixed(2)}</span></div><div class="rec-meta"><span class="rec-tag ${o.settled?'ok':'no'}">${o.settled?'✓ 已结算':'未结算'}</span><span>${dateStr}</span></div>${o.note ? `<div class="rec-note">📝 ${esc(o.note)}</div>` : ''}${(o.images && o.images.length) ? `<div class="rec-imgs">${o.images.map(i=>`<span class="rec-img"><img src="${esc(i)}" alt=""></span>`).join('')}</div>` : ''}${showDelete ? `<div class="rec-del"><button class="btn btn-ghost btn-sm" data-act="del-order" data-v="${o.id}">删除记录</button></div>` : ''}</div>`;
+}
+
+PAGES.home = { title: '主页', render(){
+  if(S.loading) return `<div class="loading"><span class="spinner"></span>加载中…</div>`;
+  const u = S.user; if(!u) return `<div class="empty">请先登录</div>`;
+  if(!S.currentClub) return card(`<div class="card-title">还没有加入俱乐部</div><div class="hint" style="margin-bottom:12px">请联系管理员获取绑定码，在设置页输入即可加入</div><button class="btn btn-primary btn-block" data-act="goto" data-page="settings">前往设置</button>`);
+  const role = S.currentRole; const isAdmin = role === 'admin'; const readonly = role === 'leader' || role === 'vice_leader'; const isPlayer = role === 'player';
+  const isTop = (S.commission.top_players || []).includes(u.nick);
+  const myOrders = S.orders.filter(o => o.user_id === u.id);
+  const monthNet = myOrders.reduce((s,o)=>s+(o.net||0), 0); const monthGross = myOrders.reduce((s,o)=>s+(o.gross||0), 0);
+
+  if(isPlayer){
+    return `${card(`<div class="profile"><div class="avatar">${esc((u.nick||u.username||'?').slice(0,1))}</div><div class="profile-main"><div class="profile-name">${esc(u.nick||u.username)}</div><div class="profile-meta">${esc(S.currentClub.name)} · ${ROLE_LABEL[role]||role}</div></div>${isTop ? '<div class="badge">本月头牌</div>' : ''}</div>${softNote('今天也在俱乐部认真发光哦 ✨')}`)}
+    ${card(`<div class="card-title">个人总结</div><div class="stat-grid"><div class="stat"><div class="stat-num">¥${monthNet.toFixed(0)}</div><div class="stat-lbl">累计实得</div></div><div class="stat"><div class="stat-num">¥${monthGross.toFixed(0)}</div><div class="stat-lbl">累计流水</div></div><div class="stat"><div class="stat-num">${myOrders.length}</div><div class="stat-lbl">累计单量</div></div><div class="stat"><div class="stat-num">${isTop?'是':'否'}</div><div class="stat-lbl">本月头牌</div></div></div>${softNote('每一单都算数，继续闪闪发光～')}`)}
+    ${card(`<div class="rect-list"><button class="rect-btn" data-act="goto" data-page="report-player"><span class="rect-ico">📝</span><span class="rect-txt">陪玩报备</span><span class="rect-arrow">›</span></button></div>`)}
+    ${secTitle('我的报备记录')}${softNote('好好记下每一份付出，时光不会辜负你。')}
+    ${card(myOrders.length ? myOrders.slice(0,6).map(o=>recItem(o)).join('') : '<div class="empty">还没有记录，期待写下你的第一条呀。</div>')}`;
+  }
+
+  const btns = [{label:'陪玩报备', icon:'📝', page:'report-player'},{label:'直属报备', icon:'🤝', page:'report-direct'},{label:'派单报备', icon:'📤', page:'report-dispatch'},{label:'外宣录入', icon:'📣', page:'report-promo'}];
+  if(isAdmin){ btns.push({label:'罚款', icon:'⚠️', page:'fine'}); btns.push({label:'全部记录', icon:'📚', page:'all-records'}); }
+
+  return `${readonly ? '<div class="banner">👀 当前身份为<b>只读</b>，修改 / 删除类按钮已隐藏</div>' : ''}
+  ${card(`<div class="profile"><div class="avatar">${esc((u.nick||u.username||'?').slice(0,1))}</div><div class="profile-main"><div class="profile-name">${esc(u.nick||u.username)}</div><div class="profile-meta">${esc(S.currentClub.name)} · ${ROLE_LABEL[role]||role}</div></div>${isTop ? '<div class="badge">本月头牌</div>' : ''}</div>${softNote('今天也在俱乐部认真发光哦 ✨')}`)}
+  ${card(`<div class="card-title">个人总结</div><div class="stat-grid"><div class="stat"><div class="stat-num">¥${monthNet.toFixed(0)}</div><div class="stat-lbl">累计实得</div></div><div class="stat"><div class="stat-num">¥${monthGross.toFixed(0)}</div><div class="stat-lbl">累计流水</div></div><div class="stat"><div class="stat-num">${myOrders.length}</div><div class="stat-lbl">累计单量</div></div><div class="stat"><div class="stat-num">${isTop?'是':'否'}</div><div class="stat-lbl">本月头牌</div></div></div>${softNote('每一单都算数，继续闪闪发光～')}`)}
+  ${card(`${softNote('每一次操作，都是和俱乐部并肩的证明。')}<div class="rect-list">${btns.map(b => `<button class="rect-btn" data-act="goto" data-page="${b.page}"><span class="rect-ico">${b.icon}</span><span class="rect-txt">${b.label}</span><span class="rect-arrow">›</span></button>`).join('')}</div>`)}`;
+}};
+
+PAGES['report-player'] = { title:'陪玩报备', back:true, render(){
+  const tiers = S.commission.tiered || []; const cnt = S.orders.filter(o => o.user_id === S.user.id).length; let rate = S.commission.base || 20;
+  tiers.forEach(t => { if(cnt >= t.count) rate -= t.reduce; }); const isTop = (S.commission.top_players || []).includes(S.user.nick);
+  return `${isTop ? `<div class="banner">🏆 你本月是<b>头牌陪玩</b>，单价自动上浮 <b>+${S.commission.top_bonus||15}%</b></div>` : ''}${tiers.length ? `<div class="banner">🎁 当前抽成率 <b>${rate}%</b>（按累计 ${cnt} 单）</div>` : ''}
+  ${softNote('认真填好每一笔报备，安心收获属于你的收入。')}
+  ${card(`${field('类型/游戏','例如：王者/技术陪','')}<div class="grid2">${numField('流水总额 Gross','rp-gross','100')}${numField('时长（小时）','rp-hours','1')}</div>
+    <div class="fold-bar ${S.folds.extra?'open':''}" data-act="toggle-fold" data-v="extra"><span class="fb-label">加价</span><span class="fb-val">+${S.extraVal} 元</span><span class="fb-arrow">▾</span></div>
+    ${S.folds.extra ? `<div class="fold-body"><div class="num-pick">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="${S.extraVal===n?'on':''}" data-act="pick-num" data-target="extra" data-v="${n}">${n}</button>`).join('')}</div></div>` : ''}
+    <div class="fold-bar ${S.folds.discount?'open':''}" data-act="toggle-fold" data-v="discount"><span class="fb-label">折扣</span><span class="fb-val">${S.discountVal} 折</span><span class="fb-arrow">▾</span></div>
+    ${S.folds.discount ? `<div class="fold-body"><div class="num-pick">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button class="${S.discountVal===n?'on':''}" data-act="pick-num" data-target="discount" data-v="${n}">${n}</button>`).join('')}</div></div>` : ''}
+    <div class="check-line" data-act="toggle-settled"><span class="check-box ${S.orderSettled?'on':''}">${S.orderSettled?'✓':''}</span><span>此单已结</span></div>
+    <div class="calc-box" id="rp-calc"></div><div class="field"><div class="field-label">备注</div><textarea class="input" id="rp-note">${esc(S.notes.rp)}</textarea></div>
+    <button class="btn btn-primary btn-block" data-act="submit-player-report">提交报备</button>${softNote('提交后可以核对一下金额，有疑问随时找管理。')}`)}
+  ${secTitle('我的报备记录')}${softNote('你的每一笔报备，我们都会用心收好。')}
+  ${card(S.orders.filter(o=>o.user_id===S.user.id).slice(0,6).map(o=>recItem(o)).join('') || '<div class="empty">还没有记录，期待写下你的第一条呀。</div>')}`;
+}, after(){ rpCalc(); } };
+
+function rpCalc(){ const box = document.getElementById('rp-calc'); if(!box) return;
+  const gross = parseFloat(document.getElementById('rp-gross')?.value) || 0; const extra = S.extraVal; const disc = S.discountVal; const finalGross = +(((gross + extra) * (disc/10)).toFixed(2));
+  const rate = S.commission.base || 20; const net = +(finalGross * (1 - rate/100)).toFixed(2);
+  box.innerHTML = `<div class="calc-row"><span>加价</span><b>+${extra} 元</b></div><div class="calc-row"><span>折扣</span><b>${disc} 折</b></div><div class="calc-row"><span>最终流水</span><b>¥${finalGross.toFixed(2)}</b></div><div class="calc-row"><span>抽成率</span><b>${rate}%</b></div><div class="calc-row total"><span>实得 Net</span><b>¥${net.toFixed(2)}</b></div>`;
+}
+
+function makeStaffReportPage(kind){
+  return { title: kind==='direct' ? '直属报备' : '派单报备', back: true, render(){
+    return `${card(`<div class="card-title">选择陪玩</div><div style="display:flex;gap:7px;flex-wrap:wrap">${(S.members||[]).map(m=>`<button class="chip ${S.selPlayer===m.id?'on':''}" data-act="pick-player" data-v="${m.id}">${esc(m.nick||m.username)}</button>`).join('') || '<div class="empty">暂无成员</div>'}</div>${softNote('拉单很费心，谢谢你一直用心付出。')}`)}
+    ${S.selPlayer ? card(`<div class="card-title">已选单子（多选）</div>${S.orders.filter(o=>o.user_id===S.selPlayer).slice(0,8).map(o=>`<div class="row" data-act="toggle-order" data-v="${o.id}" style="cursor:pointer"><span>${S.selOrders.includes(o.id)?'☑':'☐'} ${esc(o.type||'')} · ${(o.gross||0).toFixed(0)}元</span><b>¥${(o.net||0).toFixed(0)}</b></div>`).join('') || '<div class="empty">该陪玩暂无单子</div>'}<button class="btn btn-primary btn-block" data-act="submit-staff-report" data-kind="${kind}" style="margin-top:10px">确认拉单</button>${softNote('确认后收益会入账，记得抽空核对哦。')}`) : card('<div class="empty">请先选择一位陪玩</div>')}`;
+  }};
+}
+PAGES['report-direct'] = makeStaffReportPage('direct'); PAGES['report-dispatch'] = makeStaffReportPage('dispatch');
+
+PAGES['report-promo'] = { title:'外宣录入', back:true, render(){
+  return `${softNote('每一次推广，都在为我们的小家添暖意。')}${card(`${numField('宣陪数量','pm-a','0')}${numField('宣板数量','pm-b','0')}<button class="btn btn-primary btn-block" data-act="submit-promo">提交录入</button>${softNote('提交完成，请静静等待管理员核对发放。')}`)}`;
+}};
+
+PAGES.fine = { title:'罚款', back:true, render(){ return card(`<div class="card-title">下发罚款单</div>${field('陪玩昵称','','')}${numField('罚款金额','fn-amount','20')}${field('原因','','')}<button class="btn btn-primary btn-block" data-act="submit-fine">确认下发</button>`); } };
+
+PAGES['all-records'] = { title:'全部记录', back:true, render(){
+  const isAdmin = S.currentRole === 'admin'; const q = (S.allQuery||'').trim(); const list = q ? S.orders.filter(o => (o.type||'').indexOf(q) >= 0) : S.orders;
+  return `${isAdmin ? card(`<input class="input" id="all-search" placeholder="搜索类型/备注" value="${esc(q)}" style="margin-bottom:0">`) : ''}${card(list.length ? list.map(o=>recItem(o, isAdmin)).join('') : '<div class="empty">还没有记录，期待写下你的第一条呀。</div>')}${!isAdmin ? '<div class="banner">👀 团长 / 副团为只读权限，删除按钮已隐藏</div>' : ''}`;
+}};
+
+PAGES.audit = { title:'审核', right(){ return S.currentRole==='admin' ? `<button class="tb-btn" data-act="goto" data-page="audit-list">审核列表</button>` : ''; }, render(){
+  const tab = S.auditTab; const list = S.applications.filter(a => tab==='hall' ? a.status==='waiting' : a.status==='reviewing'); const statusText = {waiting:'待一审', reviewing:'审核中', passed:'已通过', rejected:'已拒绝'};
+  return `<div class="seg"><div class="seg-item ${tab==='hall'?'on':''}" data-act="audittab" data-v="hall">大厅</div><div class="seg-item ${tab==='mine'?'on':''}" data-act="audittab" data-v="mine">我的审核</div></div>${softNote(tab==='hall' ? '严谨审核，是给每一位伙伴最好的保障。' : '分到你的单子，有空尽快处理哈。')}
+  ${list.length ? list.map(a => card(`<div class="audit-head"><div class="avatar sm">${esc((a.game||'?').slice(0,1))}</div><div><div class="audit-name">${esc(a.game||'')}</div><div class="audit-sub">${esc(a.skill||'')} · 微信号 ${esc(a.wechat_id||'')}</div></div><div class="tag">${statusText[a.status]||a.status}</div></div><div class="audit-actions">${tab==='hall' ? `<button class="btn btn-primary" data-act="audit-take" data-v="${a.id}">接 单</button>` : `<button class="btn btn-ghost" data-act="audit-reject" data-v="${a.id}">拒 绝</button><button class="btn btn-primary" data-act="audit-pass" data-v="${a.id}">通 过</button>`}</div>`)).join('') : card('<div class="empty">还没有记录，期待写下你的第一条呀。</div>')}`;
+}};
+
+PAGES['audit-list'] = { title:'审核列表', back:true, render(){ const statusText = {waiting:'待一审', reviewing:'审核中', passed:'已通过', rejected:'已拒绝'}; return card(S.applications.map(a => `<div class="row"><span>${esc(a.game||'')} · ${esc(a.skill||'')}<br><small style="color:var(--text-mute);font-size:10px">${esc(a.wechat_id||'')}</small></span><b>${statusText[a.status]||a.status}</b></div>`).join('') || '<div class="empty">暂无</div>'); } };
+
+PAGES.finance = { title:'流水', render(){
+  const tab = S.finTab; const total = S.orders.reduce((s,o)=>s+(o.gross||0),0); const net = S.orders.reduce((s,o)=>s+(o.net||0),0);
+  return `<div class="seg"><div class="seg-item ${tab==='stat'?'on':''}" data-act="fintab" data-v="stat">流水统计</div><div class="seg-item ${tab==='wage'?'on':''}" data-act="fintab" data-v="wage">工资表</div></div>${softNote(tab==='stat' ? '一串数字背后，藏着所有人默默的努力。' : '账目清晰分明，不辜负每一份汗水。')}
+  ${card(`<div class="stat-grid"><div class="stat"><div class="stat-num">${S.orders.length}</div><div class="stat-lbl">订单数</div></div><div class="stat"><div class="stat-num">¥${total.toFixed(0)}</div><div class="stat-lbl">总流水</div></div><div class="stat"><div class="stat-num">¥${net.toFixed(0)}</div><div class="stat-lbl">总实得</div></div><div class="stat"><div class="stat-num">¥${(total-net).toFixed(0)}</div><div class="stat-lbl">总抽成</div></div></div>`)}
+  ${card(S.orders.length ? `<table class="tbl"><thead><tr><th>类型</th><th class="r">流水</th><th class="r">实得</th></tr></thead><tbody>${S.orders.slice(0,10).map(o=>`<tr><td>${esc(o.type||'')}</td><td class="r">¥${(o.gross||0).toFixed(0)}</td><td class="r">¥${(o.net||0).toFixed(0)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">暂无数据</div>')}`;
+}};
+
+PAGES.rank = { title:'榜单', render(){
+  const byUser = {}; S.orders.forEach(o => { if(!byUser[o.user_id]) byUser[o.user_id] = {id:o.user_id, gross:0, count:0}; byUser[o.user_id].gross += o.gross||0; byUser[o.user_id].count += 1; });
+  const list = Object.values(byUser).sort((a,b)=>b.gross-a.gross).slice(0,10);
+  return `${softNote('名次只是参考，你的努力我们全都看在眼里。')}${card(list.length ? list.map((r,i)=>`<div class="rank-row"><div class="rank-no ${i<3?'top':''}">${i+1}</div><div class="rank-name">${esc(r.id.slice(0,6))}…</div><div class="rank-val">¥${r.gross.toFixed(0)}</div></div>`).join('') : '<div class="empty">还没有数据</div>')}`;
+}};
+
+PAGES.settings = { title:'设置', render(){
+  const u = S.user; const role = S.currentRole; const isAdmin = role==='admin'; const isStaff = role==='staff'; const readonly = role==='leader' || role==='vice_leader';
+  function panel(id, title, body){ const open = !!S.panels[id]; return `<div class="panel ${open?'open':''}"><div class="panel-head" data-act="panel" data-v="${id}"><span>${title}</span><span class="panel-arrow">▾</span></div>${open?`<div class="panel-body">${body}</div>`:''}</div>`; }
+
+  const base = `${card(`<div class="card-title">账号资料</div><div class="field"><div class="field-label">用户名（只读）</div><input class="input" value="${esc(u?.username||'')}" readonly></div>${field('昵称','',u?.nick||'')}<button class="btn btn-primary btn-block" data-act="save-nickname">保 存</button>`)}
+  ${card(`<div class="card-title">身份 / 俱乐部</div>${rowEl('当前俱乐部', esc(S.currentClub?.name||'未加入'))}${rowEl('当前身份', ROLE_LABEL[role]||role||'—')}<div style="display:flex;gap:9px;margin-top:11px"><button class="btn btn-ghost btn-block btn-sm" data-act="switch-club">切换俱乐部</button><button class="btn btn-ghost btn-block btn-sm" data-act="goto" data-page="register">加入新俱乐部</button></div>`)}
+  ${isStaff ? card(`<div class="card-title">我的工作岗位</div>${Object.entries(POST_MAP).map(([k,v])=>`<div class="post-item" data-act="toggle-post" data-v="${k}"><span class="check-box ${(u?.staff_roles||[]).includes(k)?'on':''}">${(u?.staff_roles||[]).includes(k)?'✓':''}</span><span>${v}</span></div>`).join('')}<button class="btn btn-primary btn-block" style="margin-top:11px" data-act="save-post">保存岗位</button>`) : ''}
+  ${card(`<div class="card-title">公共设置</div><div class="row"><span>🎨 主题切换</span><span style="display:flex;gap:5px"><button class="chip ${S.theme==='glass'?'on':''}" data-act="theme" data-v="glass">毛玻璃</button><button class="chip ${S.theme==='y2k'?'on':''}" data-act="theme" data-v="y2k">Y2K</button><button class="chip ${S.theme==='pixel'?'on':''}" data-act="theme" data-v="pixel">像素风</button></span></div>${rowEl('🔒 修改密码','>')}${rowEl('🎧 联系客服','>')}<button class="btn btn-ghost btn-block" style="margin-top:13px;color:#d9534f" data-act="logout">🚪 退出登录</button>`)}`;
+
+  if(isAdmin){
+    const tierHtml = (S.commission.tiered||[]).map((t,i)=>`<div class="row-flex"><span class="small-lbl">满</span><input class="inline-input" type="number" value="${t.count}" data-edit="tier-count" data-i="${i}"><span class="small-lbl">单，抽成减</span><input class="inline-input" type="number" value="${t.reduce}" data-edit="tier-reduce" data-i="${i}"><span class="small-lbl">%</span><button class="btn btn-ghost btn-sm" data-act="del-tier" data-v="${i}">删</button></div>`).join('');
+    const topPlayersText = (S.commission.top_players || []).length ? (S.commission.top_players || []).join('、') : '未选择';
+    
+    // 成员管理 HTML
+    const memberRows = (S.members||[]).map(m => {
+      const mRole = (m.roles||[]).find(r=>r.club_id===S.currentClub.id)?.role || 'player';
+      return `<div class="row"><span>${esc(m.nick||m.username)} <small style="color:var(--text-mute);font-size:10px">${ROLE_LABEL[mRole]}</small></span><button class="btn btn-ghost btn-sm" data-act="appoint-role" data-v="${m.id}">任命</button></div>`;
+    }).join('');
+
+    return base +
+      panel('club','🏠 俱乐部信息', `${field('俱乐部名称','',S.currentClub?.name||'')}${rowEl('陪玩码', `<span class="code-val">${esc(S.currentClub?.code||'')}</span>`)}${rowEl('员工码', `<span class="code-val">${esc(S.currentClub?.staff_code||'')}</span>`)}`) +
+      panel('business','⚙️ 业务与抽成', `${field('基础抽成（%）','', S.commission.base || 20)}<div class="grid2">${field('派单比例（%）','', S.commission.dispatch_rate || 8)}${field('直属比例（%）','', S.commission.direct_rate || 5)}</div><div class="card-title" style="margin-top:14px">阶梯减成（可添加档位）</div>${tierHtml}<button class="btn btn-ghost btn-block btn-sm" data-act="add-tier">+ 添加档位</button><div class="row" style="margin-top:14px"><span>头牌加成（%）</span><input class="inline-input" id="top-bonus-input" type="number" value="${S.commission.top_bonus || 15}"></div><div class="row"><span>本月头牌</span><button class="btn btn-ghost btn-sm" data-act="open-top-picker">${topPlayersText} ›</button></div><button class="btn btn-primary btn-block btn-sm" style="margin-top:11px" data-act="save-business">保存设置</button>`) +
+      panel('members','👥 成员管理', `${memberRows || '<div class="empty">暂无成员</div>'}`) +
+      panel('reward','🎁 流水奖励设置', `<div class="row"><span>开启状态</span><span style="display:flex;gap:6px"><button class="chip ${S.commission.rewardEnabled?'on':''}" data-act="toggle-reward">${S.commission.rewardEnabled?'已开启':'已关闭'}</button></span></div><div class="row"><span>计算方式</span><span style="display:flex;gap:6px"><button class="chip on">单子总价流水</button><button class="chip">纯工资流水</button></span></div><div class="row"><span>结算周期</span><span style="display:flex;gap:6px"><button class="chip">按周</button><button class="chip on">按月</button></span></div>`) +
+      card(`<div class="card-title">罚款管理</div><button class="btn btn-ghost btn-block" data-act="goto" data-page="fine">进入罚款页面</button>`);
+  }
+  return base;
+}};
+
+PAGES['pending-hub'] = { title:'待审', render(){
+  const tab = S.playerPendingTab;
+  return `<div class="seg"><div class="seg-item ${tab==='audit'?'on':''}" data-act="player-pending-tab" data-v="audit">审核</div><div class="seg-item ${tab==='standard'?'on':''}" data-act="player-pending-tab" data-v="standard">标准</div><div class="seg-item ${tab==='notice'?'on':''}" data-act="player-pending-tab" data-v="notice">通知</div></div>${tab==='audit' ? pendingAuditRender() : ''}${tab==='standard' ? pendingStandardRender() : ''}${tab==='notice' ? pendingNoticeRender() : ''}`;
+}};
+PAGES['pending-audit'] = { title:'审核', render(){ return pendingAuditRender(); } }; PAGES['pending-standard'] = { title:'标准', render(){ return pendingStandardRender(); } }; PAGES['pending-notice'] = { title:'通知', render(){ return pendingNoticeRender(); } }; PAGES['pending-settings'] = { title:'设置', render(){ return pendingSettingsRender(); } };
+
+function pendingAuditRender(){
+  if(S.appStatus==='passed') return card(`<div style="text-align:center;padding:16px 0 8px"><div style="font-size:44px;margin-bottom:12px">🎉</div><div style="font-size:15px;font-weight:700;margin-bottom:8px">审核已通过</div><div style="font-size:12px;color:var(--text-sub);line-height:1.7;margin-bottom:14px">请联系管理员获取陪玩绑定码<br>在设置页输入即可解锁正式陪玩权限</div></div><button class="btn btn-primary btn-block" data-act="goto" data-page="pending-settings">前往设置</button>`);
+  if(S.appStatus==='waiting') return card(`<div style="text-align:center;padding:22px 0 10px"><div style="font-size:44px;margin-bottom:12px">⏳</div><div style="font-size:15px;font-weight:700;margin-bottom:8px">正在审核中</div><div style="font-size:12px;color:var(--text-sub);line-height:1.7">你的资料已提交至审核大厅<br>请耐心等待审核员处理</div></div>`);
+  return `${softNote('资料已收到，请耐心等候，我们尽快处理。')}${card(`<div class="card-title">提交审核资料</div>${field('申请游戏','例如：王者荣耀','')}${field('技能位置','例如：技术打野','')}${field('微信号','必填','')}<div class="field"><div class="field-label">自我介绍</div><textarea class="input" id="pa-intro"></textarea></div><button class="btn btn-primary btn-block" data-act="submit-pending-app">提交审核</button>`)}`;
+}
+function pendingStandardRender(){ return `${softNote('提前熟悉规则，能让你的审核快一点通过。')}${card(`<div class="empty">请选择游戏查看审核要求</div>`)}`; }
+function pendingNoticeRender(){ return `${softNote('重要消息都收纳在这里，不要错过啦。')}${card(`<div class="empty">暂无通知</div>`)}`; }
+function pendingSettingsRender(){ return card(`<div class="card-title">账号资料</div><div class="field"><div class="field-label">用户名（不可改）</div><input class="input" value="${esc(S.user?.username||'')}" readonly></div>${field('昵称','',S.user?.nick||'')}<button class="btn btn-primary btn-block" data-act="save-nickname">保 存</button>${rowEl('🔒 修改密码','>')}${rowEl('🎧 联系客服','>')}<button class="btn btn-ghost btn-block" style="margin-top:13px;color:#d9534f" data-act="logout">🚪 退出登录</button>`); }
+
+PAGES['super-login'] = { title:'最高管理员', back:true, render(){ return card(`<div style="text-align:center;padding:14px 0 20px"><div style="font-size:40px;margin-bottom:12px">🔒</div><div style="font-size:14px;font-weight:600;margin-bottom:6px">平台最高管理员</div></div><input class="input" type="password" id="super-pass" placeholder="请输入最高权限密码"><button class="btn btn-primary btn-block" data-act="super-login">进入控制台</button>`); } };
+PAGES['super-console'] = { title:'控制台', back:true, render(){ 
+  return `${softNote('守住规则，守护整个平台的安稳。')}${card(`<div class="card-title">授权码管理</div><button class="btn btn-primary btn-block" data-act="gen-code">+ 生成新授权码</button><div style="margin-top:13px">${S.allAuthCodes.map((c)=>{
+    const usedClub = S.allClubs.find(cl => cl.id === c.used_by_club_id);
+    return `<div class="code-item">
+      <span class="code-val">${c.code}</span>
+      <span class="code-status ${c.used?'used':''}">${c.used ? '已用: '+esc(usedClub?.name||'未知') : '未用'}</span>
+      ${c.used ? `<button class="btn btn-ghost btn-sm" style="color:#d9534f" data-act="revoke-code" data-v="${c.id}">取消授权</button>` : ''}
+    </div>`;
+  }).join('')||'<div class="empty">暂无授权码</div>'}</div>`)}`; 
+}};
+
+async function handleAction(a, d){
+  switch(a){
+    case 'goto': go(d.page); break; case 'back': back(); break; case 'tab': switchTab(d.v); break;
+    case 'regtab': S.regTab = d.v; render(); break;
+    case 'theme': S.theme = d.v; localStorage.setItem('theme', d.v); applyTheme(); render(); break;
+    case 'logout': localStorage.removeItem('uid'); window.location.reload(); break; // 秒退并刷新
+    
+    case 'do-login': {
+      const u = document.getElementById('login-user')?.value.trim(); const p = document.getElementById('login-pass')?.value;
+      if(!u || !p){ toast('请填写用户名和密码'); break; }
+      await login(u, p); if(S.user){ render(); toast('登录成功'); } break;
+    }
+    
+    case 'do-join': {
+      const cName = document.querySelectorAll('#app .input')[0]?.value;
+      const code = document.querySelectorAll('#app .input')[1]?.value;
+      if(!cName || !code){ toast('请填写完整'); break; }
+      const { data: club } = await db.from('clubs').select('*').or(`code.eq.${code},staff_code.eq.${code}`).maybeSingle();
+      if(!club){ toast('绑定码无效'); break; }
+      const role = club.code === code ? 'player' : 'staff';
+      const uid = crypto.randomUUID(); const nickname = '新用户' + Math.floor(Math.random()*1000);
+      const { error } = await db.from('profiles').insert({ id: uid, username: nickname, nick: nickname, password: '123456', roles: [{club_id: club.id, role}], current_club_id: club.id, active_role: role });
+      if(error){ toast('加入失败：'+error.message); break; }
+      toast(`加入成功！账号：${nickname} 密码：123456`); go('login'); break;
+    }
+    
+    case 'do-new-club': {
+      const cName = document.querySelectorAll('#app .input')[0]?.value;
+      const authCode = document.querySelectorAll('#app .input')[1]?.value;
+      if(!cName || !authCode){ toast('请填写完整'); break; }
+      
+      const { data: codeData, error: codeErr } = await db.from('auth_codes').select('*').eq('code', authCode).eq('used', false).maybeSingle();
+      if(codeErr || !codeData){ toast('授权码无效或已被使用'); break; }
+
+      const cid = crypto.randomUUID(); const newCode = genCode(); const newStaffCode = genCode();
+      await db.from('clubs').insert({ id: cid, name: cName, code: newCode, staff_code: newStaffCode, commission: {base:20, tiered:[], top_bonus:15, top_players:[], dispatch_rate:8, direct_rate:5} });
+      await db.from('auth_codes').update({ used: true, used_by_club_id: cid }).eq('id', codeData.id);
+      
+      const uid = crypto.randomUUID(); const nickname = '老板' + Math.floor(Math.random()*1000);
+      await db.from('profiles').insert({ id: uid, username: nickname, nick: nickname, password: '123456', roles: [{club_id: cid, role: 'admin'}], current_club_id: cid, active_role: 'admin' });
+      
+      S.modal = { title: '🎉 创建成功', content: `俱乐部名称：${cName}\n\n陪玩绑定码：${newCode}\n员工绑定码：${newStaffCode}\n\n管理员账号：${nickname}\n管理员密码：123456\n\n请妥善保存以上信息！`, action: 'close-modal', actionText: '去登录' };
+      render(); break;
+    }
+
+    case 'panel': S.panels[d.v] = !S.panels[d.v]; render(); break; case 'toggle-fold': S.folds[d.v] = !S.folds[d.v]; render(); break;
+    case 'pick-num': if(d.target==='extra') S.extraVal=+d.v; else S.discountVal=+d.v; render(); break; case 'toggle-settled': S.orderSettled = !S.orderSettled; render(); break;
+    
+    case 'pending-tab': S.pendingTab = d.v; S.page = 'pending-' + d.v; render(); break; case 'player-pending-tab': S.playerPendingTab = d.v; render(); break;
+    case 'audittab': S.auditTab = d.v; render(); break;
+    case 'submit-pending-app': {
+      const game = document.querySelectorAll('#app .input')[0]?.value; const skill = document.querySelectorAll('#app .input')[1]?.value;
+      const wechat = document.querySelectorAll('#app .input')[2]?.value; const intro = document.getElementById('pa-intro')?.value;
+      if(!game || !wechat){ toast('游戏和微信必填'); break; }
+      const { error } = await db.from('applications').insert({ id: crypto.randomUUID(), user_id: S.user.id, game, skill, wechat_id: wechat, intro, status: 'waiting' });
+      if(error){ toast('提交失败：'+error.message); break; }
+      S.appStatus = 'waiting'; render(); toast('审核资料已提交'); break;
+    }
+    case 'audit-take': await db.from('applications').update({status:'reviewing', reviewer_id: S.user.id}).eq('id', d.v); await loadApplications(); render(); toast('已接单'); break;
+    case 'audit-pass': await db.from('applications').update({status:'passed'}).eq('id', d.v); await loadApplications(); render(); toast('已通过'); break;
+    case 'audit-reject': await db.from('applications').update({status:'rejected'}).eq('id', d.v); await loadApplications(); render(); toast('已拒绝'); break;
+
+    case 'fintab': S.finTab = d.v; render(); break;
+    case 'pick-player': S.selPlayer = d.v; S.selOrders = []; render(); break;
+    case 'toggle-order': { const i = S.selOrders.indexOf(d.v); if(i>=0) S.selOrders.splice(i,1); else S.selOrders.push(d.v); render(); break; }
+    
+    case 'submit-staff-report': {
+      if(!S.selOrders.length){ toast('请先勾选至少一单'); break; }
+      const chosen = S.orders.filter(o => S.selOrders.includes(o.id)); const totalGross = chosen.reduce((s,o)=>s+(o.gross||0),0);
+      const rate = d.v === 'direct' ? (S.commission.direct_rate||5) : (S.commission.dispatch_rate||8); const wage = +(totalGross * (rate/100)).toFixed(2);
+      const { error } = await db.from('orders').insert({ id: crypto.randomUUID(), club_id: S.currentClub.id, user_id: S.user.id, type: d.v === 'direct' ? '直属提成' : '派单提成', amount: totalGross, gross: totalGross, net: wage, commission: 0, note: `拉了${chosen.length}单`, settled: false });
+      if(error){ toast('拉单失败：'+error.message); break; }
+      toast(`拉单成功，工资 ¥${wage}`); S.selOrders=[]; await loadOrders(); render(); break;
+    }
+    
+    case 'submit-player-report': {
+      const grossInput = document.getElementById('rp-gross')?.value; const hoursInput = document.getElementById('rp-hours')?.value;
+      const gross = parseFloat(grossInput) || 0; const hours = parseFloat(hoursInput) || 1;
+      if(!gross){ toast('请填写流水总额'); break; }
+      const note = document.getElementById('rp-note')?.value || ''; const game = document.querySelectorAll('#app .input')[0]?.value || '';
+      let rate = S.commission.base || 20; (S.commission.tiered || []).forEach(t => { if(S.orders.filter(o => o.user_id === S.user.id).length >= t.count) rate -= t.reduce; });
+      const net = +(gross * (1 - rate/100)).toFixed(2);
+      const { error } = await db.from('orders').insert({ id: crypto.randomUUID(), club_id: S.currentClub.id, user_id: S.user.id, type: '报备', game, hours, amount: gross, gross, commission: +(gross - net).toFixed(2), net, settled: S.orderSettled, note });
+      if(error){ toast('提交失败：' + error.message); break; }
+      toast('报备成功'); S.orderSettled=false; S.notes.rp=''; await loadOrders(); render(); break;
+    }
+
+    case 'submit-promo': toast('外宣数据已录入'); break; case 'submit-fine': toast('罚款单已下发'); break;
+    
+    case 'appoint-role': {
+      const memberId = d.v;
+      const roleName = prompt("请输入要任命的身份代码：\nadmin (管理员)\nleader (团长)\nvice_leader (副团)\nstaff (员工)\nplayer (陪玩)", "leader");
+      if(!['admin','leader','vice_leader','staff','player'].includes(roleName)){ toast('身份无效'); break; }
+      
+      const { data: pData } = await db.from('profiles').select('roles').eq('id', memberId).single();
+      const newRoles = (pData.roles || []).map(r => r.club_id === S.currentClub.id ? { ...r, role: roleName } : r);
+      await db.from('profiles').update({ roles: newRoles }).eq('id', memberId);
+      
+      S.members = await loadMembers(); render(); toast('任命成功'); break;
+    }
+    
+    case 'save-nickname': {
+      const nick = document.querySelectorAll('#app .input')[1]?.value; if(!nick){ toast('请填写昵称'); break; }
+      const { error } = await db.from('profiles').update({nick}).eq('id', S.user.id); if(error){ toast('保存失败'); break; }
+      S.user.nick = nick; toast('已保存'); render(); break;
+    }
+    case 'toggle-post': { const list = S.user.staff_roles || []; const i = list.indexOf(d.v); if(i>=0) list.splice(i,1); else list.push(d.v); S.user.staff_roles = list; render(); break; }
+    case 'save-post': await db.from('profiles').update({staff_roles: S.user.staff_roles}).eq('id', S.user.id); toast('岗位已保存'); break;
+    
+    case 'switch-club': {
+      if(S.clubs.length < 2){ toast('暂无其他俱乐部'); break; }
+      const next = S.clubs[(S.clubs.findIndex(c=>c.id===S.currentClub.id)+1) % S.clubs.length]; S.currentClub = next; S.user.current_club_id = next.id;
+      await db.from('profiles').update({current_club_id: next.id}).eq('id', S.user.id); await bootUser(); render(); toast('已切换俱乐部'); break;
+    }
+
+    case 'super-login': { const p = document.getElementById('super-pass')?.value; if(p !== '846467554jxjsjsisjidbdgujwqkjsuxhv；@'){ toast('密码错误'); break; } go('super-console'); break; }
+    case 'gen-code': { 
+      const newCode = genCode();
+      const { error } = await db.from('auth_codes').insert({ id: crypto.randomUUID(), code: newCode, used: false });
+      if(error){ toast('生成失败：'+error.message); break; }
+      await loadSuperData(); render(); toast('已生成授权码'); break; 
+    }
+    case 'revoke-code': {
+      if(!confirm('确定要取消该俱乐部的授权吗？取消后该俱乐部所有成员将无法使用功能！')) break;
+      const codeId = d.v;
+      await db.from('auth_codes').update({ used: false, used_by_club_id: null }).eq('id', codeId);
+      await loadSuperData(); render(); toast('授权已取消'); break;
+    }
+    case 'close-modal': 
+      if(S.modal?.title.includes('创建成功')) { S.modal = null; go('login'); } else { S.modal = null; render(); }
+      break; 
+    default: break;
+  }
+}
+
+document.addEventListener('click', e => { const el = e.target.closest('[data-act]'); if(!el) return; handleAction(el.dataset.act, { v: el.dataset.v, page: el.dataset.page, role: el.dataset.role, target: el.dataset.target }); });
+document.addEventListener('input', e => { const id = e.target.id || ''; if(id === 'rp-gross' || id === 'rp-hours') rpCalc(); if(id === 'all-search'){ S.allQuery = e.target.value; render(); } if(id === 'top-picker-search'){ S.topPickerQuery = e.target.value; renderModal(); } });
+
+(async function init(){ try { applyTheme(); const ok = await loadCurrentUser(); if(!ok){ S.page = 'login'; } render(); } catch (e) { document.getElementById('app').innerHTML = `<div class="card" style="color:#d9534f;font-size:12px;word-break:break-all;"><b>启动失败：</b><br>${e.message}</div>`; } })();
+</script>
+</body>
+</html>
